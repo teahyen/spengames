@@ -445,20 +445,6 @@ class Game {
         // 무빙 박스는 그대로 유지 (초기화 안 함)
         // 회전도 유지
         // 공의 조작은 계속 가능
-                    velocityX: 0,
-                    velocityY: 0,
-                    size: this.tileSize * 0.4,
-                    mass: 2
-                });
-            });
-        }
-        
-        // BGM은 계속 재생 (중단하지 않음)
-        // 매우 짧은 일시정지 후 즉시 재개 (조작 가능하게)
-        this.isPaused = true;
-        setTimeout(() => {
-            this.isPaused = false;
-        }, 100); // 300ms → 100ms로 줄임 (더 빠른 재개)
     }
     
     checkDeathWalls() {
