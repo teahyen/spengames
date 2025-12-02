@@ -50,37 +50,54 @@ class PhysicsEngine {
         const playerRadius = player.radius;
         const tileX = playerTileX * tileSize;
         const tileY = playerTileY * tileSize;
+        const wallThickness = 4; // 벽 두께 고려
 
-        // Check each wall of the tile
+        // Check each wall of the tile with improved collision
         // North wall
         if (!tile.paths.includes('N')) {
-            if (player.y - playerRadius < tileY) {
-                player.y = tileY + playerRadius;
-                player.velocityY = Math.abs(player.velocityY) * 0.5;
+            if (player.y - playerRadius < tileY + wallThickness) {
+                player.y = tileY + wallThickness + playerRadius;
+                player.velocityY = Math.max(0, player.velocityY); // 아래로만 튕김
+                // Play collision sound
+                if (window.audioManager && Math.abs(player.velocityY) > 1) {
+                    window.audioManager.playCollision();
+                }
             }
         }
 
         // South wall
         if (!tile.paths.includes('S')) {
-            if (player.y + playerRadius > tileY + tileSize) {
-                player.y = tileY + tileSize - playerRadius;
-                player.velocityY = -Math.abs(player.velocityY) * 0.5;
+            if (player.y + playerRadius > tileY + tileSize - wallThickness) {
+                player.y = tileY + tileSize - wallThickness - playerRadius;
+                player.velocityY = Math.min(0, player.velocityY); // 위로만 튕김
+                // Play collision sound
+                if (window.audioManager && Math.abs(player.velocityY) > 1) {
+                    window.audioManager.playCollision();
+                }
             }
         }
 
         // West wall
         if (!tile.paths.includes('W')) {
-            if (player.x - playerRadius < tileX) {
-                player.x = tileX + playerRadius;
-                player.velocityX = Math.abs(player.velocityX) * 0.5;
+            if (player.x - playerRadius < tileX + wallThickness) {
+                player.x = tileX + wallThickness + playerRadius;
+                player.velocityX = Math.max(0, player.velocityX); // 오른쪽으로만 튕김
+                // Play collision sound
+                if (window.audioManager && Math.abs(player.velocityX) > 1) {
+                    window.audioManager.playCollision();
+                }
             }
         }
 
         // East wall
         if (!tile.paths.includes('E')) {
-            if (player.x + playerRadius > tileX + tileSize) {
-                player.x = tileX + tileSize - playerRadius;
-                player.velocityX = -Math.abs(player.velocityX) * 0.5;
+            if (player.x + playerRadius > tileX + tileSize - wallThickness) {
+                player.x = tileX + tileSize - wallThickness - playerRadius;
+                player.velocityX = Math.min(0, player.velocityX); // 왼쪽으로만 튕김
+                // Play collision sound
+                if (window.audioManager && Math.abs(player.velocityX) > 1) {
+                    window.audioManager.playCollision();
+                }
             }
         }
     }

@@ -99,8 +99,8 @@ class Game {
             const beta = event.beta;   // Front to back tilt (-180 to 180)
             
             if (gamma !== null) {
-                // Map gamma to rotation (-45 to 45 degrees)
-                const targetRotation = Math.max(-45, Math.min(45, gamma - calibration));
+                // Map gamma to rotation (-90 to 90 degrees) - 더 넓은 범위
+                const targetRotation = Math.max(-90, Math.min(90, gamma - calibration));
                 this.targetRotation = targetRotation;
             }
         });
@@ -127,10 +127,11 @@ class Game {
         const currentX = e.clientX - rect.left;
         const currentY = e.clientY - rect.top;
         
-        // Calculate rotation based on horizontal drag
+        // Calculate rotation based on horizontal drag (더 민감하게)
         const deltaX = currentX - this.lastTouchX;
-        this.targetRotation += deltaX * 0.5;
-        this.targetRotation = Math.max(-90, Math.min(90, this.targetRotation));
+        this.targetRotation += deltaX * 0.8; // 0.5 → 0.8로 증가
+        // 회전 제한을 더 넓게 (-180 ~ 180도)
+        this.targetRotation = Math.max(-180, Math.min(180, this.targetRotation));
         
         this.lastTouchX = currentX;
         this.lastTouchY = currentY;
@@ -179,14 +180,14 @@ class Game {
     }
     
     rotateLeft() {
-        this.targetRotation -= 90;
+        this.targetRotation -= 15; // 15도씩 회전 (더 섬세한 조작)
         this.moveCount++;
         this.updateMoveDisplay();
         if (window.audioManager) window.audioManager.playRotate();
     }
     
     rotateRight() {
-        this.targetRotation += 90;
+        this.targetRotation += 15; // 15도씩 회전 (더 섬세한 조작)
         this.moveCount++;
         this.updateMoveDisplay();
         if (window.audioManager) window.audioManager.playRotate();
