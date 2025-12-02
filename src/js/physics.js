@@ -38,10 +38,27 @@ class PhysicsEngine {
         player.y += player.velocityY;
     }
 
-    // Check collision with walls (improved for rotation)
-    checkWallCollision(player, tileSize, level) {
-        const playerTileX = Math.floor(player.x / tileSize);
-        const playerTileY = Math.floor(player.y / tileSize);
+    // Check collision with walls (rotation-aware)
+    checkWallCollision(player, tileSize, level, rotation, canvasWidth, canvasHeight) {
+        // 화면 좌표를 맵 좌표로 변환 (역회전)
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+        
+        // 공의 화면 상 상대 위치
+        const relX = player.x - centerX;
+        const relY = player.y - centerY;
+        
+        // 역회전하여 맵 좌표 구하기
+        const rad = (-rotation * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        
+        const mapX = centerX + (relX * cos - relY * sin);
+        const mapY = centerY + (relX * sin + relY * cos);
+        
+        // 맵 좌표에서 타일 위치 계산
+        const playerTileX = Math.floor(mapX / tileSize);
+        const playerTileY = Math.floor(mapY / tileSize);
 
         // Get current tile
         const tile = level.tiles.find(t => t.x === playerTileX && t.y === playerTileY);
@@ -51,67 +68,110 @@ class PhysicsEngine {
         const playerRadius = player.radius;
         const tileX = playerTileX * tileSize;
         const tileY = playerTileY * tileSize;
-        const wallThickness = 6; // 벽 두께 증가 (4 → 6)
+        const wallThickness = 6; // 벽 두께
 
-        // Check each wall of the tile with improved collision
+        // 맵 좌표에서 충돌 체크
+        let collisionOccurred = false;
+        let correctedMapX = mapX;
+        let correctedMapY = mapY;
+        let correctedVelX = player.velocityX;
+        let correctedVelY = player.velocityY;
+
+        // Check each wall of the tile
         // North wall
         if (!tile.paths.includes('N')) {
-            if (player.y - playerRadius < tileY + wallThickness) {
-                player.y = tileY + wallThickness + playerRadius;
-                player.velocityY = Math.abs(player.velocityY) * 0.3; // 반발력 감소
-                // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityY) > 0.5) {
-                    window.audioManager.playCollision();
-                }
+            if (mapY - playerRadius < tileY + wallThickness) {
+                correctedMapY = tileY + wallThickness + playerRadius;
+                // 속도를 맵 좌표로 변환하여 수정
+                const velMapY = player.velocityX * sin + player.velocityY * cos;
+                const correctedVelMapY = Math.abs(velMapY) * 0.3;
+                // 다시 화면 좌표로 변환
+                correctedVelX = player.velocityX * cos + correctedVelMapY * (-sin);
+                correctedVelY = player.velocityX * (-sin) + correctedVelMapY * cos;
+                collisionOccurred = true;
             }
         }
 
         // South wall
         if (!tile.paths.includes('S')) {
-            if (player.y + playerRadius > tileY + tileSize - wallThickness) {
-                player.y = tileY + tileSize - wallThickness - playerRadius;
-                player.velocityY = -Math.abs(player.velocityY) * 0.3; // 반발력 감소
-                // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityY) > 0.5) {
-                    window.audioManager.playCollision();
-                }
+            if (mapY + playerRadius > tileY + tileSize - wallThickness) {
+                correctedMapY = tileY + tileSize - wallThickness - playerRadius;
+                const velMapY = player.velocityX * sin + player.velocityY * cos;
+                const correctedVelMapY = -Math.abs(velMapY) * 0.3;
+                correctedVelX = player.velocityX * cos + correctedVelMapY * (-sin);
+                correctedVelY = player.velocityX * (-sin) + correctedVelMapY * cos;
+                collisionOccurred = true;
             }
         }
 
         // West wall
         if (!tile.paths.includes('W')) {
-            if (player.x - playerRadius < tileX + wallThickness) {
-                player.x = tileX + wallThickness + playerRadius;
-                player.velocityX = Math.abs(player.velocityX) * 0.3; // 반발력 감소
-                // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityX) > 0.5) {
-                    window.audioManager.playCollision();
-                }
+            if (mapX - playerRadius < tileX + wallThickness) {
+                correctedMapX = tileX + wallThickness + playerRadius;
+                const velMapX = player.velocityX * cos - player.velocityY * sin;
+                const correctedVelMapX = Math.abs(velMapX) * 0.3;
+                correctedVelX = correctedVelMapX * cos + player.velocityY * sin;
+                correctedVelY = correctedVelMapX * sin + player.velocityY * cos;
+                collisionOccurred = true;
             }
         }
 
         // East wall
         if (!tile.paths.includes('E')) {
-            if (player.x + playerRadius > tileX + tileSize - wallThickness) {
-                player.x = tileX + tileSize - wallThickness - playerRadius;
-                player.velocityX = -Math.abs(player.velocityX) * 0.3; // 반발력 감소
-                // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityX) > 0.5) {
-                    window.audioManager.playCollision();
-                }
+            if (mapX + playerRadius > tileX + tileSize - wallThickness) {
+                correctedMapX = tileX + tileSize - wallThickness - playerRadius;
+                const velMapX = player.velocityX * cos - player.velocityY * sin;
+                const correctedVelMapX = -Math.abs(velMapX) * 0.3;
+                correctedVelX = correctedVelMapX * cos + player.velocityY * sin;
+                correctedVelY = correctedVelMapX * sin + player.velocityY * cos;
+                collisionOccurred = true;
+            }
+        }
+        
+        if (collisionOccurred) {
+            // 수정된 맵 좌표를 다시 화면 좌표로 변환
+            const correctedRelX = correctedMapX - centerX;
+            const correctedRelY = correctedMapY - centerY;
+            
+            const forwardRad = (rotation * Math.PI) / 180;
+            const fCos = Math.cos(forwardRad);
+            const fSin = Math.sin(forwardRad);
+            
+            player.x = centerX + (correctedRelX * fCos - correctedRelY * fSin);
+            player.y = centerY + (correctedRelX * fSin + correctedRelY * fCos);
+            player.velocityX = correctedVelX;
+            player.velocityY = correctedVelY;
+            
+            // Play collision sound
+            if (window.audioManager && (Math.abs(correctedVelX) > 0.5 || Math.abs(correctedVelY) > 0.5)) {
+                window.audioManager.playCollision();
             }
         }
     }
 
-    // Check collision with obstacles
-    checkObstacleCollision(player, obstacles, tileSize) {
+    // Check collision with obstacles (rotation-aware)
+    checkObstacleCollision(player, obstacles, tileSize, rotation, canvasWidth, canvasHeight) {
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+        const rad = (rotation * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        
         for (const obstacle of obstacles) {
-            const obstacleX = obstacle.x * tileSize + tileSize / 2;
-            const obstacleY = obstacle.y * tileSize + tileSize / 2;
+            // 장애물의 맵 좌표
+            const obstacleMapX = obstacle.x * tileSize + tileSize / 2;
+            const obstacleMapY = obstacle.y * tileSize + tileSize / 2;
             const obstacleRadius = tileSize * 0.3;
+            
+            // 장애물을 화면 좌표로 변환
+            const relObstX = obstacleMapX - centerX;
+            const relObstY = obstacleMapY - centerY;
+            
+            const obstacleScreenX = centerX + (relObstX * cos - relObstY * sin);
+            const obstacleScreenY = centerY + (relObstX * sin + relObstY * cos);
 
-            const dx = player.x - obstacleX;
-            const dy = player.y - obstacleY;
+            const dx = player.x - obstacleScreenX;
+            const dy = player.y - obstacleScreenY;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance < player.radius + obstacleRadius) {
@@ -141,14 +201,30 @@ class PhysicsEngine {
         return false;
     }
 
-    // Check if player reached goal
-    checkGoalReached(player, goal, tileSize) {
-        const goalX = goal.x * tileSize + tileSize / 2;
-        const goalY = goal.y * tileSize + tileSize / 2;
+    // Check if player reached goal (rotation-aware)
+    checkGoalReached(player, goal, tileSize, rotation, canvasWidth, canvasHeight) {
+        // 골의 맵 좌표
+        const goalMapX = goal.x * tileSize + tileSize / 2;
+        const goalMapY = goal.y * tileSize + tileSize / 2;
         const goalRadius = tileSize * 0.3;
-
-        const dx = player.x - goalX;
-        const dy = player.y - goalY;
+        
+        // 골을 화면 좌표로 변환 (회전 적용)
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+        
+        const relGoalX = goalMapX - centerX;
+        const relGoalY = goalMapY - centerY;
+        
+        const rad = (rotation * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        
+        const goalScreenX = centerX + (relGoalX * cos - relGoalY * sin);
+        const goalScreenY = centerY + (relGoalX * sin + relGoalY * cos);
+        
+        // 화면 좌표에서 거리 계산
+        const dx = player.x - goalScreenX;
+        const dy = player.y - goalScreenY;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         return distance < player.radius + goalRadius;
@@ -188,14 +264,14 @@ class PhysicsEngine {
         const canvasHeight = level.size * tileSize;
         
         this.constrainToBounds(player, canvasWidth, canvasHeight);
-        this.checkWallCollision(player, tileSize, level);
+        this.checkWallCollision(player, tileSize, level, rotation, canvasWidth, canvasHeight);
 
         if (level.obstacles && level.obstacles.length > 0) {
-            this.checkObstacleCollision(player, level.obstacles, tileSize);
+            this.checkObstacleCollision(player, level.obstacles, tileSize, rotation, canvasWidth, canvasHeight);
         }
 
         // Check goal
-        return this.checkGoalReached(player, level.goal, tileSize);
+        return this.checkGoalReached(player, level.goal, tileSize, rotation, canvasWidth, canvasHeight);
     }
 }
 
