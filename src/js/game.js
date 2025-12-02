@@ -221,10 +221,10 @@ class Game {
         // Check powerups
         this.checkPowerups();
         
-        // Check obstacle collision (장애물에 닿으면 리스폰)
-        if (this.checkObstacleHit()) {
-            this.handleObstacleHit();
-            return;
+        // Check obstacle collision (장애물에 닿으면 튕기고 사라짐)
+        const hitInfo = this.checkObstacleHit();
+        if (hitInfo) {
+            this.handleObstacleHit(hitInfo);
         }
         
         // Check death walls (빨간 벽 - 닿으면 게임 오버)
@@ -387,7 +387,7 @@ class Game {
     }
     
     checkObstacleHit() {
-        if (!this.currentLevel.obstacles) return false;
+        if (!this.currentLevel.obstacles) return null;
         
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
@@ -395,7 +395,8 @@ class Game {
         const cos = Math.cos(rad);
         const sin = Math.sin(rad);
         
-        for (const obstacle of this.currentLevel.obstacles) {
+        for (let i = 0; i < this.currentLevel.obstacles.length; i++) {
+            const obstacle = this.currentLevel.obstacles[i];
             // 장애물의 맵 좌표
             const obstacleMapX = obstacle.x * this.tileSize + this.tileSize / 2;
             const obstacleMapY = obstacle.y * this.tileSize + this.tileSize / 2;
@@ -413,39 +414,37 @@ class Game {
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance < this.player.radius + obstacleRadius) {
-                return true;
+                return { index: i, screenX: obstacleScreenX, screenY: obstacleScreenY, dx: dx, dy: dy, distance: distance, radius: obstacleRadius };
             }
         }
-        return false;
+        return null;
     }
     
-    handleObstacleHit() {
-        // 사망 횟수 증가
-        this.deathCount++;
-        
-        // 사망 사운드 재생
+    handleObstacleHit(hitInfo) {
+        // 장애물 충돌 사운드 재생
         if (window.audioManager) {
-            window.audioManager.playGameOver();
+            window.audioManager.playCollision();
         }
         
-        // 공을 시작 위치로 리스폰
-        this.player.x = this.startPosition.x;
-        this.player.y = this.startPosition.y;
-        this.player.velocityX = 0;
-        this.player.velocityY = 0;
+        // 공을 튕겨냄 (강한 반발력)
+        const angle = Math.atan2(hitInfo.dy, hitInfo.dx);
+        const pushStrength = 5; // 강한 튕김 효과
         
-        // 회전도 초기화
-        this.rotation = 0;
-        this.targetRotation = 0;
-        this.isRotating = false;
+        // 공을 장애물에서 밀어냄
+        const overlap = this.player.radius + hitInfo.radius - hitInfo.distance;
+        this.player.x += Math.cos(angle) * (overlap + 2); // 약간 더 밀어냄
+        this.player.y += Math.sin(angle) * (overlap + 2);
         
-        // 무빙 박스도 초기화
-        if (this.currentLevel.movingBoxes) {
-            this.movingBoxes = [];
-            this.currentLevel.movingBoxes.forEach(box => {
-                this.movingBoxes.push({
-                    x: box.x * this.tileSize + this.tileSize / 2,
-                    y: box.y * this.tileSize + this.tileSize / 2,
+        // 속도를 반대 방향으로 강하게 설정
+        this.player.velocityX = Math.cos(angle) * pushStrength;
+        this.player.velocityY = Math.sin(angle) * pushStrength;
+        
+        // 장애물을 배열에서 제거 (사라지게)
+        this.currentLevel.obstacles.splice(hitInfo.index, 1);
+        
+        // 무빙 박스는 그대로 유지 (초기화 안 함)
+        // 회전도 유지
+        // 공의 조작은 계속 가능
                     velocityX: 0,
                     velocityY: 0,
                     size: this.tileSize * 0.4,

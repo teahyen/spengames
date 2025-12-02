@@ -150,54 +150,10 @@ class PhysicsEngine {
     }
 
     // Check collision with obstacles (rotation-aware)
+    // This is now handled in game.js for better control over obstacle removal
     checkObstacleCollision(player, obstacles, tileSize, rotation, canvasWidth, canvasHeight) {
-        const centerX = canvasWidth / 2;
-        const centerY = canvasHeight / 2;
-        const rad = (rotation * Math.PI) / 180;
-        const cos = Math.cos(rad);
-        const sin = Math.sin(rad);
-        
-        for (const obstacle of obstacles) {
-            // 장애물의 맵 좌표
-            const obstacleMapX = obstacle.x * tileSize + tileSize / 2;
-            const obstacleMapY = obstacle.y * tileSize + tileSize / 2;
-            const obstacleRadius = tileSize * 0.2; // 0.3 → 0.2로 줄임
-            
-            // 장애물을 화면 좌표로 변환
-            const relObstX = obstacleMapX - centerX;
-            const relObstY = obstacleMapY - centerY;
-            
-            const obstacleScreenX = centerX + (relObstX * cos - relObstY * sin);
-            const obstacleScreenY = centerY + (relObstX * sin + relObstY * cos);
-
-            const dx = player.x - obstacleScreenX;
-            const dy = player.y - obstacleScreenY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < player.radius + obstacleRadius) {
-                // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityX) + Math.abs(player.velocityY) > 2) {
-                    window.audioManager.playCollision();
-                }
-                
-                // Push player away from obstacle
-                const angle = Math.atan2(dy, dx);
-                const overlap = player.radius + obstacleRadius - distance;
-                
-                player.x += Math.cos(angle) * overlap;
-                player.y += Math.sin(angle) * overlap;
-
-                // Bounce effect
-                const normalX = dx / distance;
-                const normalY = dy / distance;
-                const dotProduct = player.velocityX * normalX + player.velocityY * normalY;
-
-                player.velocityX = (player.velocityX - 2 * dotProduct * normalX) * 0.7;
-                player.velocityY = (player.velocityY - 2 * dotProduct * normalY) * 0.7;
-
-                return true;
-            }
-        }
+        // Collision detection and response is now handled in game.js checkObstacleHit()
+        // to allow for obstacle removal and custom bounce behavior
         return false;
     }
 
