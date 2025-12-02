@@ -142,28 +142,52 @@ class Game {
             return;
         }
         
-        // Smooth rotation with isRotating flag
+        // Smooth rotation with player rotation inheritance
         const wasRotating = this.isRotating;
         if (Math.abs(this.rotation - this.targetRotation) > 0.5) {
             this.isRotating = true;
-            this.rotation += (this.targetRotation - this.rotation) * 0.15; // 0.1 → 0.15로 증가
             
-            // 회전 중에는 속도를 약간 감소시켜 벽 통과 방지
-            if (this.isRotating) {
-                this.player.velocityX *= 0.95;
-                this.player.velocityY *= 0.95;
-            }
+            const prevRotation = this.rotation;
+            this.rotation += (this.targetRotation - this.rotation) * 0.15;
+            const deltaRotation = this.rotation - prevRotation;
+            
+            // 회전 중: 공을 맵과 함께 회전 (맵 중심 기준)
+            const centerX = this.canvas.width / 2;
+            const centerY = this.canvas.height / 2;
+            
+            // 공의 현재 위치를 중심 기준 상대 좌표로 변환
+            const relX = this.player.x - centerX;
+            const relY = this.player.y - centerY;
+            
+            // 회전 변화량만큼 공 위치 회전
+            const deltaRad = (deltaRotation * Math.PI) / 180;
+            const cos = Math.cos(deltaRad);
+            const sin = Math.sin(deltaRad);
+            
+            const newRelX = relX * cos - relY * sin;
+            const newRelY = relX * sin + relY * cos;
+            
+            // 절대 좌표로 다시 변환
+            this.player.x = centerX + newRelX;
+            this.player.y = centerY + newRelY;
+            
+            // 속도도 회전 (방향 유지)
+            const oldVelX = this.player.velocityX;
+            const oldVelY = this.player.velocityY;
+            this.player.velocityX = oldVelX * cos - oldVelY * sin;
+            this.player.velocityY = oldVelX * sin + oldVelY * cos;
         } else {
             this.rotation = this.targetRotation;
             this.isRotating = false;
         }
         
-        // Update physics
+        // Update physics (중력은 항상 아래 방향)
         const goalReached = this.physics.update(
             this.player,
             this.currentLevel,
             this.tileSize,
-            this.rotation
+            this.rotation,
+            this.isRotating  // 회전 중 여부 전달
         );
         
         // Check powerups

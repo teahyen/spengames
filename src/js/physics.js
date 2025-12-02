@@ -6,24 +6,16 @@ class PhysicsEngine {
         this.maxVelocity = 8;
     }
 
-    // Apply gravity to player
-    applyGravity(player, rotation) {
-        // Normalize rotation to -180 to 180 range for consistent gravity
-        let normalizedRotation = rotation % 360;
-        if (normalizedRotation > 180) normalizedRotation -= 360;
-        if (normalizedRotation < -180) normalizedRotation += 360;
+    // Apply gravity to player (always downward in screen space)
+    applyGravity(player, rotation, isRotating) {
+        // 회전 중에는 중력 적용 안 함 (공이 맵과 함께 회전)
+        if (isRotating) {
+            return;
+        }
         
-        // Determine gravity direction based on maze rotation
-        // rotation = 0: gravity down (Y+)
-        // rotation = 90: gravity left (X-)
-        // rotation = 180: gravity up (Y-)
-        // rotation = -90/270: gravity right (X+)
-        const rotationRad = (normalizedRotation * Math.PI) / 180;
-        const gravityX = Math.sin(rotationRad) * this.gravity;
-        const gravityY = Math.cos(rotationRad) * this.gravity;
-
-        player.velocityX += gravityX;
-        player.velocityY += gravityY;
+        // 회전이 멈춘 상태에서는 항상 아래(Y+) 방향으로 중력 적용
+        // 화면 기준으로 아래 방향이므로 회전 각도 무관
+        player.velocityY += this.gravity;
 
         // Clamp velocity
         player.velocityX = Math.max(-this.maxVelocity, Math.min(this.maxVelocity, player.velocityX));
@@ -183,9 +175,9 @@ class PhysicsEngine {
     }
 
     // Update physics for one frame
-    update(player, level, tileSize, rotation) {
+    update(player, level, tileSize, rotation, isRotating) {
         // Apply forces
-        this.applyGravity(player, rotation);
+        this.applyGravity(player, rotation, isRotating);
         this.applyFriction(player);
 
         // Update position
