@@ -4,18 +4,18 @@ const urlsToCache = [
     '/',
     '/index.html',
     '/src/css/main.css',
-    '/src/js/levels.js',
-    '/src/js/physics.js',
+    '/src/js/main.js',
     '/src/js/game.js',
-    '/src/js/ui.js',
-    '/src/js/main.js'
+    '/src/js/physics.js',
+    '/src/js/levels.js',
+    '/src/js/ui.js'
 ];
 
 // Install event
-self.addEventListener('install', event => {
+self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
+            .then((cache) => {
                 console.log('Opened cache');
                 return cache.addAll(urlsToCache);
             })
@@ -23,10 +23,10 @@ self.addEventListener('install', event => {
 });
 
 // Fetch event
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request)
-            .then(response => {
+            .then((response) => {
                 // Cache hit - return response
                 if (response) {
                     return response;
@@ -38,12 +38,12 @@ self.addEventListener('fetch', event => {
 });
 
 // Activate event
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
     const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
-        caches.keys().then(cacheNames => {
+        caches.keys().then((cacheNames) => {
             return Promise.all(
-                cacheNames.map(cacheName => {
+                cacheNames.map((cacheName) => {
                     if (cacheWhitelist.indexOf(cacheName) === -1) {
                         return caches.delete(cacheName);
                     }

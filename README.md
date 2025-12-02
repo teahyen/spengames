@@ -1,230 +1,167 @@
 # 섞고 섞고 돌리고 섞고 (Mix, Spin, Mix)
 
-A puzzle maze game where you rotate the maze to guide a ball from start to goal using gravity physics.
+미로를 회전시켜 골을 찾아가는 물리 기반 퍼즐 게임입니다.
 
-## 🎮 Game Overview
+## 🎮 게임 소개
 
-**섞고 섞고 돌리고 섞고** is a physics-based puzzle game inspired by classic maze games. Instead of moving the player, you rotate the entire maze, and gravity causes the player ball to roll through the passages toward the goal.
+"섞고 섞고 돌리고 섞고"는 중력을 이용한 독특한 미로 게임입니다. 플레이어는 미로 자체를 회전시켜 공이 출발점에서 목표점까지 굴러가도록 만들어야 합니다.
 
-### Core Mechanics
-- **Maze Rotation**: Rotate the entire maze 90° left or right
-- **Gravity Physics**: The player ball rolls according to gravity based on maze rotation
-- **Path Navigation**: Navigate through maze passages with walls blocking certain directions
-- **Goal Reaching**: Guide the yellow ball to the orange goal
+### 주요 특징
 
-## 🎯 Features
+- 🌀 **미로 회전 메커니즘**: 캐릭터를 직접 조작하지 않고 미로를 회전시킵니다
+- 🎯 **60개의 레벨**: 쉬운 레벨부터 전문가 레벨까지 점진적인 난이도 증가
+- 🔥 **물리 엔진**: 실제 중력과 충돌을 시뮬레이션
+- 📱 **모바일 지원**: 터치 드래그 및 자이로 센서 조작
+- ⚡ **파워업 시스템**: 
+  - 시간 추가 (+30초)
+  - 텔레포트 (랜덤 위치로 이동)
+  - 장애물 제거
+- ⭐ **별 평가 시스템**: 이동 횟수와 시간에 따른 1-3성 평가
+- 💾 **진행 상황 저장**: 로컬 스토리지에 자동 저장
 
-### 60 Levels
-- **Easy (1-15)**: 3x3 and 4x4 grids, simple paths
-- **Medium (16-35)**: 4x4 and 5x5 grids with obstacles
-- **Hard (36-50)**: 5x5 and 6x6 grids with time limits
-- **Expert (51-60)**: 6x6 grids with time limits and move limits
+## 🎯 게임 방법
 
-### Game Features
-- ⭐ **Star Rating System**: Earn up to 3 stars based on performance
-- 🏆 **Progressive Difficulty**: Levels unlock as you progress
-- 📱 **Mobile Support**: Touch controls and gyro sensor support
-- 💾 **Progress Saving**: Automatic save using localStorage
-- 🎨 **Clean UI**: Modern, responsive design
-- ⚡ **Physics Engine**: Realistic gravity and collision detection
+1. **목표**: 노란색 시작점에서 주황색 목표점까지 공을 이동시키세요
+2. **조작**:
+   - **PC**: 마우스 드래그 또는 방향키 (←/→)
+   - **모바일**: 화면 드래그 또는 기기 기울이기
+   - **버튼**: 화면 하단의 회전 버튼 사용
+3. **규칙**:
+   - 미로를 회전시켜 중력으로 공을 굴립니다
+   - 벽과 장애물을 피하세요
+   - 일부 레벨에는 시간 제한이 있습니다
+   - 이동 횟수를 최소화하여 더 많은 별을 획득하세요
 
-### Special Elements
-- **Obstacles**: Red circular barriers that bounce the player
-- **Time Limits**: Race against the clock on harder levels
-- **Move Limits**: Complete levels within a move budget
-- **Star Challenges**: Optimal performance for maximum stars
+## 🏗️ 레벨 구성
 
-## 🕹️ Controls
+### Easy (레벨 1-15)
+- 3x3 ~ 4x4 그리드
+- 기본 미로 메커니즘 학습
+- 장애물 없음
 
-### Desktop
-- **Arrow Keys** / **A/D**: Rotate maze left/right
-- **Mouse Drag**: Drag left/right to rotate maze
-- **Buttons**: Use on-screen rotation buttons
+### Medium (레벨 16-35)
+- 4x4 ~ 5x5 그리드
+- 장애물 등장
+- 복잡한 경로
 
-### Mobile
-- **Touch & Drag**: Swipe left/right to rotate maze
-- **Gyro Sensor**: Tilt device to rotate maze (iOS/Android)
-- **Touch Buttons**: Tap on-screen rotation buttons
+### Hard (레벨 36-50)
+- 5x5 ~ 6x6 그리드
+- 시간 제한 추가
+- 더 많은 장애물
 
-## 🛠️ Technical Details
+### Expert (레벨 51-60)
+- 6x6 그리드
+- 시간 제한 + 이동 횟수 제한
+- 파워업 등장
+- 최고 난이도
 
-### Architecture
+## 🛠️ 기술 스택
+
+- **Frontend**: Vanilla JavaScript (ES6+)
+- **Graphics**: HTML5 Canvas
+- **Physics**: Custom physics engine
+- **Storage**: LocalStorage
+- **Mobile**: Touch events, DeviceOrientation API
+- **PWA**: Service Worker support
+
+## 📁 프로젝트 구조
+
 ```
-/home/user/webapp/
-├── index.html              # Main HTML file
+webapp/
+├── index.html              # 메인 HTML
 ├── src/
 │   ├── css/
-│   │   └── main.css       # All styles
-│   └── js/
-│       ├── levels.js      # 60 level definitions
-│       ├── physics.js     # Physics engine
-│       ├── game.js        # Main game engine
-│       ├── ui.js          # UI manager
-│       └── main.js        # Entry point
-└── sw.js                  # Service worker (PWA support)
+│   │   └── main.css       # 스타일시트
+│   ├── js/
+│   │   ├── main.js        # 진입점
+│   │   ├── game.js        # 게임 엔진
+│   │   ├── physics.js     # 물리 엔진
+│   │   ├── levels.js      # 레벨 데이터
+│   │   └── ui.js          # UI 컨트롤러
+│   └── assets/
+│       ├── images/        # 이미지 리소스
+│       └── sounds/        # 사운드 효과
+└── README.md
 ```
 
-### Technologies Used
-- **HTML5 Canvas**: For rendering game graphics
-- **Vanilla JavaScript**: No frameworks, pure JS
-- **CSS3**: Modern styling with gradients and animations
-- **LocalStorage**: Progress persistence
-- **Service Worker**: PWA support for offline play
-- **Device Orientation API**: Gyro sensor support
+## 🚀 실행 방법
 
-### Physics System
-- **Gravity**: Applied based on maze rotation angle
-- **Friction**: Gradual slowdown of player movement
-- **Collision Detection**: Wall and obstacle collision handling
-- **Velocity Clamping**: Maximum speed limits
-- **Bounce Physics**: Realistic bounce off obstacles
+### 로컬 실행
 
-## 🚀 Running the Game
-
-### Local Development
-1. Clone or download the repository
-2. Open `index.html` in a modern web browser
-3. Or use a local server:
 ```bash
-# Python 3
+# 간단한 HTTP 서버 실행
 python3 -m http.server 8000
 
-# Node.js
-npx http-server
-
-# PHP
-php -S localhost:8000
+# 또는 Node.js
+npx http-server -p 8000
 ```
 
-4. Visit `http://localhost:8000`
+브라우저에서 `http://localhost:8000` 접속
 
-### Deployment
-The game is a static web application and can be deployed to:
+### 배포
+
+정적 파일이므로 어떤 웹 호스팅에도 배포 가능합니다:
 - GitHub Pages
 - Netlify
 - Vercel
-- Any static hosting service
+- AWS S3 + CloudFront
+- Firebase Hosting
 
-Simply upload all files to your hosting service.
+## 🎮 키보드 단축키
 
-## 🎨 Game Design
+- `←` / `→`: 미로 회전
+- `R`: 레벨 재시작
+- **이스터 에그**: ↑↑↓↓←→←→BA (코나미 코드) - 모든 레벨 해금
 
-### Visual Style
-- **Color Scheme**: Purple gradient background (#667eea to #764ba2)
-- **Player**: Golden yellow ball with face
-- **Goal**: Animated orange circle with glow effect
-- **Obstacles**: Red circles with danger symbols
-- **Maze**: Light gray tiles with dark walls
+## 🔧 개발 기능
 
-### User Experience
-- Smooth rotation animations
-- Particle effects on level completion
-- Progressive difficulty curve
-- Star-based achievement system
-- Level unlock progression
-- Responsive mobile-first design
+### 구현된 기능
+- ✅ 60개 레벨 시스템
+- ✅ 물리 기반 게임플레이
+- ✅ 터치/마우스 드래그 조작
+- ✅ 자이로 센서 지원
+- ✅ 장애물 시스템
+- ✅ 파워업 시스템
+- ✅ 시간/이동 제한
+- ✅ 별 평가 시스템
+- ✅ 진행 상황 저장
+- ✅ 반응형 디자인
+- ✅ PWA 지원
 
-## 📊 Level Generation
+### 향후 추가 가능 기능
+- 🔲 사운드 효과 및 배경 음악
+- 🔲 멀티플레이어 모드
+- 🔲 레벨 에디터
+- 🔲 리더보드
+- 🔲 업적 시스템
+- 🔲 다국어 지원
 
-Levels are procedurally enhanced with:
-- **Grid Size**: 3x3 to 6x6 based on difficulty
-- **Path Complexity**: More connections in easier levels
-- **Obstacle Placement**: Strategic blocking in medium+ levels
-- **Time Pressure**: Decreasing time limits for hard levels
-- **Move Economy**: Limited moves for expert levels
+## 📱 모바일 지원
 
-## 🏆 Star Rating System
+- iOS Safari 10+
+- Android Chrome 60+
+- 반응형 레이아웃
+- 터치 제스처 최적화
+- 자이로스코프 활용 (지원 기기)
 
-Stars are awarded based on:
-1. ⭐ **1 Star**: Complete the level
-2. ⭐⭐ **2 Stars**: Complete with optimal moves (≤ size × 1.5)
-3. ⭐⭐⭐ **3 Stars**: Complete quickly (≤ size × 10 seconds) with optimal moves
+## 🎨 디자인 컨셉
 
-## 🐛 Browser Compatibility
+- **색상 테마**: 보라색 그라데이션 (Purple Gradient)
+- **UI 스타일**: 현대적이고 미니멀
+- **애니메이션**: 부드러운 전환 효과
+- **아이콘**: 이모지 기반 직관적 인터페이스
 
-Tested and working on:
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-- ✅ Mobile Chrome
-- ✅ Mobile Safari
+## 📄 라이선스
 
-### Requirements
-- HTML5 Canvas support
-- ES6 JavaScript support
-- LocalStorage API
-- (Optional) Device Orientation API for gyro
+이 프로젝트는 교육 및 포트폴리오 목적으로 제작되었습니다.
 
-## 📱 PWA Support
+## 👥 제작
 
-The game includes Service Worker for:
-- Offline play capability
-- Fast loading from cache
-- App-like experience on mobile
-- Add to home screen support
+- 기획: 김태현 팀 (원본 기획서 기반)
+- 개발: GenSpark AI Developer
+- 게임 타입: 캐주얼 퍼즐
+- 플랫폼: 웹 (모바일/데스크톱)
 
-## 🎓 Learning Resources
+## 🙏 감사의 말
 
-This project demonstrates:
-- HTML5 Canvas rendering
-- Game physics implementation
-- Input handling (keyboard, mouse, touch, gyro)
-- State management
-- LocalStorage for persistence
-- Responsive web design
-- Service Workers and PWA
-- Procedural content generation
-
-## 📝 Credits
-
-**Game Design**: Based on the "섞고 섞고 돌리고 섞고" concept by Ogidong Team 1
-- Kim Tae-hyeon
-- Kim Min-su
-- Seong Yoon-seo
-- Nam Ju-young
-
-**Implementation**: AI-Assisted Development
-
-## 📄 License
-
-This project is open source and available for educational purposes.
-
-## 🔧 Debug Mode
-
-Open browser console and type:
-```javascript
-debugGame()
-```
-
-This will show current game state including:
-- Current level
-- Move count
-- Elapsed time
-- Rotation angle
-- Player position
-- Completed levels
-
-## 🎯 Future Enhancements
-
-Possible additions:
-- Sound effects and background music
-- More power-ups (slow time, extra moves, teleport)
-- Level editor
-- Leaderboards
-- Achievements system
-- Different ball skins
-- Multiplayer mode
-- Custom level sharing
-
-## 📞 Support
-
-For issues or questions, please check:
-1. Browser console for errors
-2. Browser compatibility
-3. JavaScript enabled
-4. LocalStorage available
-
----
-
-**Enjoy playing 섞고 섞고 돌리고 섞고!** 🎮✨
+오지동 1팀의 원본 기획서를 바탕으로 제작되었습니다.
