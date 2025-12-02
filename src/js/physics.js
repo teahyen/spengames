@@ -161,7 +161,7 @@ class PhysicsEngine {
             // 장애물의 맵 좌표
             const obstacleMapX = obstacle.x * tileSize + tileSize / 2;
             const obstacleMapY = obstacle.y * tileSize + tileSize / 2;
-            const obstacleRadius = tileSize * 0.3;
+            const obstacleRadius = tileSize * 0.2; // 0.3 → 0.2로 줄임
             
             // 장애물을 화면 좌표로 변환
             const relObstX = obstacleMapX - centerX;

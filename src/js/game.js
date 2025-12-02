@@ -399,7 +399,7 @@ class Game {
             // 장애물의 맵 좌표
             const obstacleMapX = obstacle.x * this.tileSize + this.tileSize / 2;
             const obstacleMapY = obstacle.y * this.tileSize + this.tileSize / 2;
-            const obstacleRadius = this.tileSize * 0.3;
+            const obstacleRadius = this.tileSize * 0.2; // 0.3 → 0.2로 줄임
             
             // 장애물을 화면 좌표로 변환
             const relObstX = obstacleMapX - centerX;
@@ -455,11 +455,11 @@ class Game {
         }
         
         // BGM은 계속 재생 (중단하지 않음)
-        // 잠시 일시정지 후 재개
+        // 매우 짧은 일시정지 후 즉시 재개 (조작 가능하게)
         this.isPaused = true;
         setTimeout(() => {
             this.isPaused = false;
-        }, 300);
+        }, 100); // 300ms → 100ms로 줄임 (더 빠른 재개)
     }
     
     checkDeathWalls() {
@@ -760,7 +760,7 @@ class Game {
         for (const obstacle of this.currentLevel.obstacles) {
             const x = obstacle.x * this.tileSize + this.tileSize / 2;
             const y = obstacle.y * this.tileSize + this.tileSize / 2;
-            const radius = this.tileSize * 0.3;
+            const radius = this.tileSize * 0.2; // 0.3 → 0.2로 줄임 (더 작게)
             
             // Draw obstacle
             ctx.fillStyle = '#e74c3c';
