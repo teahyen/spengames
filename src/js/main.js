@@ -26,36 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: false });
     
-    // Request device orientation permission for iOS 13+
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // Create a button to request permission
-        const requestButton = document.createElement('button');
-        requestButton.textContent = '자이로 센서 활성화';
-        requestButton.className = 'btn-secondary';
-        requestButton.style.position = 'fixed';
-        requestButton.style.bottom = '20px';
-        requestButton.style.left = '50%';
-        requestButton.style.transform = 'translateX(-50%)';
-        requestButton.style.zIndex = '1000';
-        
-        requestButton.addEventListener('click', async () => {
-            try {
-                const permission = await DeviceOrientationEvent.requestPermission();
-                if (permission === 'granted') {
-                    requestButton.remove();
-                    console.log('Gyroscope permission granted');
-                }
-            } catch (error) {
-                console.error('Error requesting device orientation permission:', error);
-            }
-        });
-        
-        // Add button to main menu
-        const mainMenu = document.getElementById('mainMenu');
-        if (mainMenu) {
-            mainMenu.querySelector('.menu-container').appendChild(requestButton);
-        }
-    }
+    // Gyroscope feature removed - button controls only
     
     // Service worker registration for PWA support (optional)
     if ('serviceWorker' in navigator) {

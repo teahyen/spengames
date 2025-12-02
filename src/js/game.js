@@ -26,12 +26,7 @@ class Game {
             radius: 0
         };
         
-        // Touch/drag state
-        this.isDragging = false;
-        this.dragStartX = 0;
-        this.dragStartY = 0;
-        this.lastTouchX = 0;
-        this.lastTouchY = 0;
+        // Drag and gyroscope removed - button controls only
         
         // Animation
         this.animationId = null;
@@ -52,25 +47,6 @@ class Game {
     }
     
     setupControls() {
-        // Mouse/touch drag controls
-        this.canvas.addEventListener('mousedown', (e) => this.handleDragStart(e));
-        this.canvas.addEventListener('mousemove', (e) => this.handleDragMove(e));
-        this.canvas.addEventListener('mouseup', () => this.handleDragEnd());
-        this.canvas.addEventListener('mouseleave', () => this.handleDragEnd());
-        
-        this.canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.handleDragStart(e.touches[0]);
-        });
-        this.canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            this.handleDragMove(e.touches[0]);
-        });
-        this.canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.handleDragEnd();
-        });
-        
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') {
@@ -82,64 +58,11 @@ class Game {
             }
         });
         
-        // Gyroscope support
-        if (window.DeviceOrientationEvent) {
-            this.setupGyroscope();
-        }
+        // No drag controls - removed
+        // No gyroscope controls - removed
     }
     
-    setupGyroscope() {
-        let gyroEnabled = false;
-        let calibration = 0;
-        
-        window.addEventListener('deviceorientation', (event) => {
-            if (!gyroEnabled || this.isPaused) return;
-            
-            const gamma = event.gamma; // Left to right tilt (-90 to 90)
-            const beta = event.beta;   // Front to back tilt (-180 to 180)
-            
-            if (gamma !== null) {
-                // Map gamma to rotation (-90 to 90 degrees) - 더 넓은 범위
-                const targetRotation = Math.max(-90, Math.min(90, gamma - calibration));
-                this.targetRotation = targetRotation;
-            }
-        });
-        
-        // Enable gyro with a delay
-        setTimeout(() => {
-            gyroEnabled = true;
-        }, 1000);
-    }
-    
-    handleDragStart(e) {
-        this.isDragging = true;
-        const rect = this.canvas.getBoundingClientRect();
-        this.dragStartX = e.clientX - rect.left;
-        this.dragStartY = e.clientY - rect.top;
-        this.lastTouchX = this.dragStartX;
-        this.lastTouchY = this.dragStartY;
-    }
-    
-    handleDragMove(e) {
-        if (!this.isDragging) return;
-        
-        const rect = this.canvas.getBoundingClientRect();
-        const currentX = e.clientX - rect.left;
-        const currentY = e.clientY - rect.top;
-        
-        // Calculate rotation based on horizontal drag (더 민감하게)
-        const deltaX = currentX - this.lastTouchX;
-        this.targetRotation += deltaX * 0.8; // 0.5 → 0.8로 증가
-        // 회전 제한을 더 넓게 (-180 ~ 180도)
-        this.targetRotation = Math.max(-180, Math.min(180, this.targetRotation));
-        
-        this.lastTouchX = currentX;
-        this.lastTouchY = currentY;
-    }
-    
-    handleDragEnd() {
-        this.isDragging = false;
-    }
+
     
     loadLevel(levelIndex) {
         this.currentLevelIndex = levelIndex;
@@ -162,7 +85,7 @@ class Game {
         this.player.velocityY = 0;
         this.player.radius = this.tileSize * 0.2;
         
-        // Reset game state
+        // Reset game state (회전도 0으로 초기화)
         this.rotation = 0;
         this.targetRotation = 0;
         this.moveCount = 0;
@@ -180,14 +103,14 @@ class Game {
     }
     
     rotateLeft() {
-        this.targetRotation -= 15; // 15도씩 회전 (더 섬세한 조작)
+        this.targetRotation -= 90; // 90도씩 회전
         this.moveCount++;
         this.updateMoveDisplay();
         if (window.audioManager) window.audioManager.playRotate();
     }
     
     rotateRight() {
-        this.targetRotation += 15; // 15도씩 회전 (더 섬세한 조작)
+        this.targetRotation += 90; // 90도씩 회전
         this.moveCount++;
         this.updateMoveDisplay();
         if (window.audioManager) window.audioManager.playRotate();
