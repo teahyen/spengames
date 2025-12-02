@@ -8,6 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show main menu
     window.uiController.showScreen('mainMenu');
     
+    // Resume audio context on first user interaction (required for mobile)
+    const resumeAudio = () => {
+        if (window.audioManager) {
+            window.audioManager.resume();
+        }
+        document.removeEventListener('click', resumeAudio);
+        document.removeEventListener('touchstart', resumeAudio);
+    };
+    document.addEventListener('click', resumeAudio);
+    document.addEventListener('touchstart', resumeAudio);
+    
     // Prevent default touch behaviors
     document.body.addEventListener('touchmove', (e) => {
         if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
