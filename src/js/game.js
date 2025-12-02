@@ -345,25 +345,16 @@ class Game {
         // Play win sound
         if (window.audioManager) window.audioManager.playStageClear();
         
-        // Calculate stars based on time (2분 = 120초 기준)
-        let stars = 1; // 기본 1개 (클리어만 하면)
-        const timeInSeconds = this.elapsedTime;
+        // Calculate stars based on death count only
+        let stars = 3; // 기본 3개
         
-        // 2분 이내 클리어 시 별 추가
-        if (timeInSeconds <= 120) { // 2분 이내
+        // 사망 횟수에 따른 별 감소
+        if (this.deathCount >= 5) {
             stars = 1;
-        }
-        if (timeInSeconds <= 90) { // 1분 30초 이내
+        } else if (this.deathCount >= 3) {
             stars = 2;
         }
-        if (timeInSeconds <= 60) { // 1분 이내
-            stars = 3;
-        }
-        
-        // 사망 횟수에 따른 페널티
-        if (this.deathCount > 3) {
-            stars = Math.max(1, stars - 1);
-        }
+        // 0-2회 사망: 3개 별
         
         // Save progress
         this.saveProgress(stars);
@@ -952,23 +943,19 @@ class Game {
     drawUI() {
         const ctx = this.ctx;
         
-        // 항상 경과 시간 표시
-        const elapsed = this.elapsedTime;
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = Math.floor(elapsed % 60);
-        
-        // 2분 넘으면 빨간색
-        ctx.fillStyle = elapsed > 120 ? '#e74c3c' : '#333';
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'right';
-        ctx.fillText(`⏱ ${minutes}:${seconds.toString().padStart(2, '0')}`, this.canvas.width - 10, 30);
-        
-        // 사망 횟수 표시
+        // 사망 횟수 표시 (우측 상단)
         if (this.deathCount > 0) {
-            ctx.fillStyle = '#e74c3c';
-            ctx.font = 'bold 18px Arial';
+            let color = '#333';
+            if (this.deathCount >= 5) {
+                color = '#e74c3c'; // 빨간색 (1 star)
+            } else if (this.deathCount >= 3) {
+                color = '#f39c12'; // 주황색 (2 stars)
+            }
+            
+            ctx.fillStyle = color;
+            ctx.font = 'bold 24px Arial';
             ctx.textAlign = 'right';
-            ctx.fillText(`💀 ${this.deathCount}`, this.canvas.width - 10, 55);
+            ctx.fillText(`💀 ${this.deathCount}`, this.canvas.width - 10, 30);
         }
     }
 }
