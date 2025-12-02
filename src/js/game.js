@@ -380,10 +380,41 @@ class Game {
     }
     
     handleDeath() {
-        this.isPaused = true;
-        if (window.audioManager) window.audioManager.playGameOver();
-        alert('게임 오버! 빨간 벽에 닿았습니다.');
-        this.reset();
+        // 사망 횟수 증가
+        this.deathCount++;
+        
+        // 사망 사운드 재생
+        if (window.audioManager) {
+            window.audioManager.playGameOver();
+        }
+        
+        // 공을 시작 위치로 리스폰
+        this.player.x = this.startPosition.x;
+        this.player.y = this.startPosition.y;
+        this.player.velocityX = 0;
+        this.player.velocityY = 0;
+        
+        // 회전도 초기화
+        this.rotation = 0;
+        this.targetRotation = 0;
+        this.isRotating = false;
+        
+        // 무빙 박스도 초기화
+        if (this.currentLevel.movingBoxes) {
+            this.movingBoxes = [];
+            this.currentLevel.movingBoxes.forEach(box => {
+                this.movingBoxes.push({
+                    x: box.x * this.tileSize + this.tileSize / 2,
+                    y: box.y * this.tileSize + this.tileSize / 2,
+                    velocityX: 0,
+                    velocityY: 0,
+                    size: this.tileSize * 0.4,
+                    mass: 2
+                });
+            });
+        }
+        
+        // BGM은 계속 재생 (중단하지 않음)
     }
     
     checkObstacleHit() {
@@ -468,7 +499,7 @@ class Game {
         for (const wall of this.currentLevel.deathWalls) {
             const tileX = wall.x * this.tileSize;
             const tileY = wall.y * this.tileSize;
-            const wallThickness = 8;
+            const wallThickness = 4; // 8 → 4로 줄임 (히트박스 50% 감소)
             
             // Check which side has the death wall
             if (wall.side === 'N' && playerMapY - this.player.radius < tileY + wallThickness) {
