@@ -88,12 +88,21 @@ class Game {
         // Reset game state (회전도 0으로 초기화)
         this.rotation = 0;
         this.targetRotation = 0;
+        this.isRotating = false;
         this.moveCount = 0;
         this.startTime = Date.now();
         this.elapsedTime = 0;
         this.isPaused = false;
         this.isGameWon = false;
         this.activePowerups = [];
+        
+        // BGM 재시작 (기존 BGM이 있으면 정지 후 재시작)
+        if (window.audioManager && window.audioManager.enabled) {
+            window.audioManager.stopBGM();
+            setTimeout(() => {
+                if (window.audioManager) window.audioManager.startBGM();
+            }, 100);
+        }
         
         // Start game loop
         if (this.animationId) {

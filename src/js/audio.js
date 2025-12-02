@@ -8,6 +8,7 @@ class AudioManager {
         this.sounds = {};
         this.bgmOscillators = [];
         this.isBgmPlaying = false;
+        this.bgmTimeouts = []; // 타임아웃 추적용
         
         // Initialize Web Audio API
         this.initAudioContext();
@@ -195,7 +196,12 @@ class AudioManager {
     
     // Start background music (looping melody)
     startBGM() {
-        if (!this.enabled || !this.audioContext || this.isBgmPlaying) return;
+        if (!this.enabled || !this.audioContext) return;
+        
+        // 기존 BGM이 재생 중이면 먼저 정지
+        if (this.isBgmPlaying) {
+            this.stopBGM();
+        }
         
         this.isBgmPlaying = true;
         this.playBGMLoop();
@@ -204,6 +210,8 @@ class AudioManager {
     // Stop background music
     stopBGM() {
         this.isBgmPlaying = false;
+        
+        // 모든 oscillator 정지
         this.bgmOscillators.forEach(osc => {
             try {
                 osc.stop();
@@ -212,6 +220,10 @@ class AudioManager {
             }
         });
         this.bgmOscillators = [];
+        
+        // 모든 타임아웃 클리어
+        this.bgmTimeouts.forEach(timeout => clearTimeout(timeout));
+        this.bgmTimeouts = [];
     }
     
     // Play looping background music melody
@@ -242,7 +254,7 @@ class AudioManager {
         
         let currentTime = 0;
         melody.forEach(note => {
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 if (!this.isBgmPlaying) return;
                 
                 const oscillator = this.audioContext.createOscillator();
@@ -263,15 +275,18 @@ class AudioManager {
                 this.bgmOscillators.push(oscillator);
             }, currentTime * 1000);
             
+            this.bgmTimeouts.push(timeoutId);
             currentTime += note.duration;
         });
         
         // Loop the melody
-        setTimeout(() => {
+        const loopTimeoutId = setTimeout(() => {
             if (this.isBgmPlaying) {
                 this.playBGMLoop();
             }
         }, totalDuration * 1000);
+        
+        this.bgmTimeouts.push(loopTimeoutId);
     }
 }
 

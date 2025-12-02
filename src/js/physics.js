@@ -8,9 +8,17 @@ class PhysicsEngine {
 
     // Apply gravity to player
     applyGravity(player, rotation) {
+        // Normalize rotation to -180 to 180 range for consistent gravity
+        let normalizedRotation = rotation % 360;
+        if (normalizedRotation > 180) normalizedRotation -= 360;
+        if (normalizedRotation < -180) normalizedRotation += 360;
+        
         // Determine gravity direction based on maze rotation
-        // 회전이 변할 때 속도를 부드럽게 조정
-        const rotationRad = (rotation * Math.PI) / 180;
+        // rotation = 0: gravity down (Y+)
+        // rotation = 90: gravity left (X-)
+        // rotation = 180: gravity up (Y-)
+        // rotation = -90/270: gravity right (X+)
+        const rotationRad = (normalizedRotation * Math.PI) / 180;
         const gravityX = Math.sin(rotationRad) * this.gravity;
         const gravityY = Math.cos(rotationRad) * this.gravity;
 
