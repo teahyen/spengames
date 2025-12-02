@@ -77,7 +77,7 @@ def ensure_path_exists(tiles, size, start, goal):
             tile['paths'].append(direction)
 
 def generate_tile_paths(size, complexity):
-    """Generate tiles with paths for a maze"""
+    """Generate tiles with paths for a maze - ensures connectivity"""
     tiles = []
     for y in range(size):
         for x in range(size):
@@ -92,7 +92,26 @@ def generate_tile_paths(size, complexity):
             if random.random() > complexity:
                 paths.append('W')
             
-            # Ensure at least one path
+            # Ensure at least TWO paths for better connectivity
+            if len(paths) < 2:
+                available = ['N', 'E', 'S', 'W']
+                # Add valid paths only
+                if y == 0:
+                    available.remove('N')
+                if y == size - 1:
+                    available.remove('S')
+                if x == 0:
+                    available.remove('W')
+                if x == size - 1:
+                    available.remove('E')
+                
+                while len(paths) < 2 and available:
+                    new_path = random.choice(available)
+                    if new_path not in paths:
+                        paths.append(new_path)
+                        available.remove(new_path)
+            
+            # Fallback: ensure at least one path
             if not paths:
                 paths.append(random.choice(['N', 'E', 'S', 'W']))
             

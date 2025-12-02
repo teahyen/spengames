@@ -98,6 +98,13 @@ class Game {
         this.isPaused = false;
         this.isGameWon = false;
         this.activePowerups = [];
+        this.deathCount = 0; // 사망 횟수
+        
+        // 시작 위치 저장 (리스폰용)
+        this.startPosition = {
+            x: this.currentLevel.start.x * this.tileSize + this.tileSize / 2,
+            y: this.currentLevel.start.y * this.tileSize + this.tileSize / 2
+        };
         
         // Initialize moving boxes (초록 네모)
         this.movingBoxes = [];
@@ -213,6 +220,12 @@ class Game {
         
         // Check powerups
         this.checkPowerups();
+        
+        // Check obstacle collision (장애물에 닿으면 리스폰)
+        if (this.checkObstacleHit()) {
+            this.handleObstacleHit();
+            return;
+        }
         
         // Check death walls (빨간 벽 - 닿으면 게임 오버)
         if (this.checkDeathWalls()) {
@@ -332,12 +345,24 @@ class Game {
         // Play win sound
         if (window.audioManager) window.audioManager.playStageClear();
         
-        // Calculate stars (based on moves and time)
-        let stars = 3;
-        if (this.currentLevel.moveLimit) {
-            const movesUsed = this.moveCount / this.currentLevel.moveLimit;
-            if (movesUsed > 0.8) stars = 1;
-            else if (movesUsed > 0.5) stars = 2;
+        // Calculate stars based on time (2분 = 120초 기준)
+        let stars = 1; // 기본 1개 (클리어만 하면)
+        const timeInSeconds = this.elapsedTime;
+        
+        // 2분 이내 클리어 시 별 추가
+        if (timeInSeconds <= 120) { // 2분 이내
+            stars = 1;
+        }
+        if (timeInSeconds <= 90) { // 1분 30초 이내
+            stars = 2;
+        }
+        if (timeInSeconds <= 60) { // 1분 이내
+            stars = 3;
+        }
+        
+        // 사망 횟수에 따른 페널티
+        if (this.deathCount > 3) {
+            stars = Math.max(1, stars - 1);
         }
         
         // Save progress
@@ -368,6 +393,82 @@ class Game {
         if (window.audioManager) window.audioManager.playGameOver();
         alert('게임 오버! 빨간 벽에 닿았습니다.');
         this.reset();
+    }
+    
+    checkObstacleHit() {
+        if (!this.currentLevel.obstacles) return false;
+        
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        const rad = (this.rotation * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        
+        for (const obstacle of this.currentLevel.obstacles) {
+            // 장애물의 맵 좌표
+            const obstacleMapX = obstacle.x * this.tileSize + this.tileSize / 2;
+            const obstacleMapY = obstacle.y * this.tileSize + this.tileSize / 2;
+            const obstacleRadius = this.tileSize * 0.3;
+            
+            // 장애물을 화면 좌표로 변환
+            const relObstX = obstacleMapX - centerX;
+            const relObstY = obstacleMapY - centerY;
+            
+            const obstacleScreenX = centerX + (relObstX * cos - relObstY * sin);
+            const obstacleScreenY = centerY + (relObstX * sin + relObstY * cos);
+
+            const dx = this.player.x - obstacleScreenX;
+            const dy = this.player.y - obstacleScreenY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < this.player.radius + obstacleRadius) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    handleObstacleHit() {
+        // 사망 횟수 증가
+        this.deathCount++;
+        
+        // 사망 사운드 재생
+        if (window.audioManager) {
+            window.audioManager.playGameOver();
+        }
+        
+        // 공을 시작 위치로 리스폰
+        this.player.x = this.startPosition.x;
+        this.player.y = this.startPosition.y;
+        this.player.velocityX = 0;
+        this.player.velocityY = 0;
+        
+        // 회전도 초기화
+        this.rotation = 0;
+        this.targetRotation = 0;
+        this.isRotating = false;
+        
+        // 무빙 박스도 초기화
+        if (this.currentLevel.movingBoxes) {
+            this.movingBoxes = [];
+            this.currentLevel.movingBoxes.forEach(box => {
+                this.movingBoxes.push({
+                    x: box.x * this.tileSize + this.tileSize / 2,
+                    y: box.y * this.tileSize + this.tileSize / 2,
+                    velocityX: 0,
+                    velocityY: 0,
+                    size: this.tileSize * 0.4,
+                    mass: 2
+                });
+            });
+        }
+        
+        // BGM은 계속 재생 (중단하지 않음)
+        // 잠시 일시정지 후 재개
+        this.isPaused = true;
+        setTimeout(() => {
+            this.isPaused = false;
+        }, 300);
     }
     
     checkDeathWalls() {
@@ -851,25 +952,23 @@ class Game {
     drawUI() {
         const ctx = this.ctx;
         
-        // Draw time limit if exists
-        if (this.currentLevel.timeLimit) {
-            const remaining = Math.max(0, this.currentLevel.timeLimit - this.elapsedTime);
-            const minutes = Math.floor(remaining / 60);
-            const seconds = Math.floor(remaining % 60);
-            
-            ctx.fillStyle = remaining < 10 ? '#e74c3c' : '#333';
-            ctx.font = 'bold 20px Arial';
-            ctx.textAlign = 'right';
-            ctx.fillText(`⏱ ${minutes}:${seconds.toString().padStart(2, '0')}`, this.canvas.width - 10, 30);
-        }
+        // 항상 경과 시간 표시
+        const elapsed = this.elapsedTime;
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = Math.floor(elapsed % 60);
         
-        // Draw move limit if exists
-        if (this.currentLevel.moveLimit) {
-            const remaining = Math.max(0, this.currentLevel.moveLimit - this.moveCount);
-            ctx.fillStyle = remaining < 5 ? '#e74c3c' : '#333';
-            ctx.font = 'bold 20px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText(`🚶 ${remaining}`, 10, 30);
+        // 2분 넘으면 빨간색
+        ctx.fillStyle = elapsed > 120 ? '#e74c3c' : '#333';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'right';
+        ctx.fillText(`⏱ ${minutes}:${seconds.toString().padStart(2, '0')}`, this.canvas.width - 10, 30);
+        
+        // 사망 횟수 표시
+        if (this.deathCount > 0) {
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText(`💀 ${this.deathCount}`, this.canvas.width - 10, 55);
         }
     }
 }
