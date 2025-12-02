@@ -2,6 +2,12 @@
 
 미로를 회전시켜 골을 찾아가는 물리 기반 퍼즐 게임입니다.
 
+## 🔗 링크
+
+- **🎮 게임 플레이**: [https://teahyen.github.io/spengames/](https://teahyen.github.io/spengames/)
+- **📄 포트폴리오**: [https://teahyen.github.io/spengames/portfolio.html](https://teahyen.github.io/spengames/portfolio.html)
+- **💻 GitHub**: [https://github.com/teahyen/spengames](https://github.com/teahyen/spengames)
+
 ## 🎮 게임 소개
 
 "섞고 섞고 돌리고 섞고"는 중력을 이용한 독특한 미로 게임입니다. 플레이어는 미로 자체를 회전시켜 공이 출발점에서 목표점까지 굴러가도록 만들어야 합니다.
