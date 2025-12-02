@@ -34,6 +34,9 @@ class Game {
         // Powerup effects
         this.activePowerups = [];
         
+        // Moving boxes state (초록 네모 - 중력 영향 받는 상자)
+        this.movingBoxes = [];
+        
         this.setupCanvas();
         this.setupControls();
     }
@@ -95,6 +98,21 @@ class Game {
         this.isPaused = false;
         this.isGameWon = false;
         this.activePowerups = [];
+        
+        // Initialize moving boxes (초록 네모)
+        this.movingBoxes = [];
+        if (this.currentLevel.movingBoxes) {
+            this.currentLevel.movingBoxes.forEach(box => {
+                this.movingBoxes.push({
+                    x: box.x * this.tileSize + this.tileSize / 2,
+                    y: box.y * this.tileSize + this.tileSize / 2,
+                    velocityX: 0,
+                    velocityY: 0,
+                    size: this.tileSize * 0.4,
+                    mass: 2 // 공보다 무거움
+                });
+            });
+        }
         
         // BGM 재시작 (기존 BGM이 있으면 정지 후 재시작)
         if (window.audioManager && window.audioManager.enabled) {
@@ -190,8 +208,17 @@ class Game {
             this.isRotating  // 회전 중 여부 전달
         );
         
+        // Update moving boxes physics
+        this.updateMovingBoxes();
+        
         // Check powerups
         this.checkPowerups();
+        
+        // Check death walls (빨간 벽 - 닿으면 게임 오버)
+        if (this.checkDeathWalls()) {
+            this.handleDeath();
+            return;
+        }
         
         // Check win condition
         if (goalReached) {
@@ -224,13 +251,28 @@ class Game {
     checkPowerups() {
         if (!this.currentLevel.powerups) return;
         
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        const rad = (this.rotation * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        
         for (let i = this.currentLevel.powerups.length - 1; i >= 0; i--) {
             const powerup = this.currentLevel.powerups[i];
-            const powerupX = powerup.x * this.tileSize + this.tileSize / 2;
-            const powerupY = powerup.y * this.tileSize + this.tileSize / 2;
+            // 파워업의 맵 좌표
+            const powerupMapX = powerup.x * this.tileSize + this.tileSize / 2;
+            const powerupMapY = powerup.y * this.tileSize + this.tileSize / 2;
             
-            const dx = this.player.x - powerupX;
-            const dy = this.player.y - powerupY;
+            // 맵 좌표를 화면 좌표로 변환 (회전 적용)
+            const relPowerupX = powerupMapX - centerX;
+            const relPowerupY = powerupMapY - centerY;
+            
+            const powerupScreenX = centerX + (relPowerupX * cos - relPowerupY * sin);
+            const powerupScreenY = centerY + (relPowerupX * sin + relPowerupY * cos);
+            
+            // 화면 좌표에서 거리 계산
+            const dx = this.player.x - powerupScreenX;
+            const dy = this.player.y - powerupScreenY;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
             if (distance < this.player.radius + this.tileSize * 0.2) {
@@ -252,11 +294,26 @@ class Game {
             case 'teleport':
                 // Teleport to random safe location
                 const safeTiles = this.currentLevel.tiles.filter(t => 
-                    !this.currentLevel.obstacles.some(o => o.x === t.x && o.y === t.y)
+                    !this.currentLevel.obstacles || !this.currentLevel.obstacles.some(o => o.x === t.x && o.y === t.y)
                 );
                 const randomTile = safeTiles[Math.floor(Math.random() * safeTiles.length)];
-                this.player.x = randomTile.x * this.tileSize + this.tileSize / 2;
-                this.player.y = randomTile.y * this.tileSize + this.tileSize / 2;
+                
+                // 맵 좌표에서 텔레포트 위치 계산
+                const teleportMapX = randomTile.x * this.tileSize + this.tileSize / 2;
+                const teleportMapY = randomTile.y * this.tileSize + this.tileSize / 2;
+                
+                // 맵 좌표를 화면 좌표로 변환 (회전 적용)
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const rad = (this.rotation * Math.PI) / 180;
+                const cos = Math.cos(rad);
+                const sin = Math.sin(rad);
+                
+                const relX = teleportMapX - centerX;
+                const relY = teleportMapY - centerY;
+                
+                this.player.x = centerX + (relX * cos - relY * sin);
+                this.player.y = centerY + (relX * sin + relY * cos);
                 this.player.velocityX = 0;
                 this.player.velocityY = 0;
                 break;
@@ -306,6 +363,136 @@ class Game {
         this.reset();
     }
     
+    handleDeath() {
+        this.isPaused = true;
+        if (window.audioManager) window.audioManager.playGameOver();
+        alert('게임 오버! 빨간 벽에 닿았습니다.');
+        this.reset();
+    }
+    
+    checkDeathWalls() {
+        if (!this.currentLevel.deathWalls) return false;
+        
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        const rad = (this.rotation * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        
+        // 공의 화면 위치를 맵 좌표로 역변환
+        const relX = this.player.x - centerX;
+        const relY = this.player.y - centerY;
+        const invRad = -rad;
+        const invCos = Math.cos(invRad);
+        const invSin = Math.sin(invRad);
+        const playerMapX = centerX + (relX * invCos - relY * invSin);
+        const playerMapY = centerY + (relX * invSin + relY * invCos);
+        
+        for (const wall of this.currentLevel.deathWalls) {
+            const tileX = wall.x * this.tileSize;
+            const tileY = wall.y * this.tileSize;
+            const wallThickness = 8;
+            
+            // Check which side has the death wall
+            if (wall.side === 'N' && playerMapY - this.player.radius < tileY + wallThickness) {
+                if (playerMapX >= tileX && playerMapX <= tileX + this.tileSize) {
+                    return true;
+                }
+            }
+            if (wall.side === 'S' && playerMapY + this.player.radius > tileY + this.tileSize - wallThickness) {
+                if (playerMapX >= tileX && playerMapX <= tileX + this.tileSize) {
+                    return true;
+                }
+            }
+            if (wall.side === 'W' && playerMapX - this.player.radius < tileX + wallThickness) {
+                if (playerMapY >= tileY && playerMapY <= tileY + this.tileSize) {
+                    return true;
+                }
+            }
+            if (wall.side === 'E' && playerMapX + this.player.radius > tileX + this.tileSize - wallThickness) {
+                if (playerMapY >= tileY && playerMapY <= tileY + this.tileSize) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    updateMovingBoxes() {
+        if (!this.movingBoxes || this.movingBoxes.length === 0) return;
+        
+        const gravity = 0.5;
+        const friction = 0.9;
+        
+        for (const box of this.movingBoxes) {
+            // 회전 중이 아닐 때만 중력 적용
+            if (!this.isRotating) {
+                box.velocityY += gravity;
+            }
+            
+            // 마찰력 적용
+            box.velocityX *= friction;
+            box.velocityY *= friction;
+            
+            // 위치 업데이트
+            box.x += box.velocityX;
+            box.y += box.velocityY;
+            
+            // 경계 체크
+            const canvasWidth = this.currentLevel.size * this.tileSize;
+            const canvasHeight = this.currentLevel.size * this.tileSize;
+            const halfSize = box.size / 2;
+            
+            if (box.x - halfSize < 0) {
+                box.x = halfSize;
+                box.velocityX = Math.abs(box.velocityX) * 0.5;
+            }
+            if (box.x + halfSize > canvasWidth) {
+                box.x = canvasWidth - halfSize;
+                box.velocityX = -Math.abs(box.velocityX) * 0.5;
+            }
+            if (box.y - halfSize < 0) {
+                box.y = halfSize;
+                box.velocityY = Math.abs(box.velocityY) * 0.5;
+            }
+            if (box.y + halfSize > canvasHeight) {
+                box.y = canvasHeight - halfSize;
+                box.velocityY = -Math.abs(box.velocityY) * 0.5;
+            }
+            
+            // 공과의 충돌 체크
+            const dx = this.player.x - box.x;
+            const dy = this.player.y - box.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDist = this.player.radius + halfSize;
+            
+            if (distance < minDist) {
+                // 충돌 처리 - 공이 상자를 밀음
+                const angle = Math.atan2(dy, dx);
+                const overlap = minDist - distance;
+                
+                // 상자를 밀어냄
+                box.x -= Math.cos(angle) * overlap * 0.7;
+                box.y -= Math.sin(angle) * overlap * 0.7;
+                
+                // 운동량 전달
+                const relVelX = this.player.velocityX - box.velocityX;
+                const relVelY = this.player.velocityY - box.velocityY;
+                const normalX = dx / distance;
+                const normalY = dy / distance;
+                const dotProduct = relVelX * normalX + relVelY * normalY;
+                
+                if (dotProduct > 0) {
+                    const impulse = dotProduct * 0.5;
+                    box.velocityX += normalX * impulse * 0.5;
+                    box.velocityY += normalY * impulse * 0.5;
+                    this.player.velocityX -= normalX * impulse;
+                    this.player.velocityY -= normalY * impulse;
+                }
+            }
+        }
+    }
+    
     saveProgress(stars) {
         const progress = JSON.parse(localStorage.getItem('gameProgress') || '{}');
         const levelId = this.currentLevel.id;
@@ -339,8 +526,14 @@ class Game {
         // Draw maze
         this.drawMaze();
         
+        // Draw death walls (빨간 벽)
+        this.drawDeathWalls();
+        
         // Draw obstacles
         this.drawObstacles();
+        
+        // Draw moving boxes (초록 네모)
+        this.drawMovingBoxes();
         
         // Draw powerups
         this.drawPowerups();
@@ -396,6 +589,78 @@ class Game {
         }
     }
     
+    drawDeathWalls() {
+        if (!this.currentLevel.deathWalls) return;
+        
+        const ctx = this.ctx;
+        const wallThickness = 8;
+        const time = Date.now() / 1000;
+        
+        // 번쩍이는 효과
+        const pulse = 0.7 + Math.sin(time * 5) * 0.3;
+        
+        for (const wall of this.currentLevel.deathWalls) {
+            const x = wall.x * this.tileSize;
+            const y = wall.y * this.tileSize;
+            
+            ctx.fillStyle = `rgba(220, 20, 20, ${pulse})`;
+            
+            // Draw death wall on specified side
+            if (wall.side === 'N') {
+                ctx.fillRect(x, y, this.tileSize, wallThickness);
+            } else if (wall.side === 'S') {
+                ctx.fillRect(x, y + this.tileSize - wallThickness, this.tileSize, wallThickness);
+            } else if (wall.side === 'W') {
+                ctx.fillRect(x, y, wallThickness, this.tileSize);
+            } else if (wall.side === 'E') {
+                ctx.fillRect(x + this.tileSize - wallThickness, y, wallThickness, this.tileSize);
+            }
+            
+            // 위험 표시 (작은 삼각형들)
+            ctx.fillStyle = `rgba(255, 255, 0, ${pulse})`;
+            if (wall.side === 'N' || wall.side === 'S') {
+                for (let i = 0; i < 3; i++) {
+                    const tx = x + (i + 0.5) * this.tileSize / 3;
+                    const ty = wall.side === 'N' ? y + wallThickness / 2 : y + this.tileSize - wallThickness / 2;
+                    this.drawWarningTriangle(ctx, tx, ty, 5, wall.side === 'N');
+                }
+            } else {
+                for (let i = 0; i < 3; i++) {
+                    const tx = wall.side === 'W' ? x + wallThickness / 2 : x + this.tileSize - wallThickness / 2;
+                    const ty = y + (i + 0.5) * this.tileSize / 3;
+                    this.drawWarningTriangle(ctx, tx, ty, 5, wall.side === 'W', true);
+                }
+            }
+        }
+    }
+    
+    drawWarningTriangle(ctx, x, y, size, pointUp, horizontal = false) {
+        ctx.beginPath();
+        if (horizontal) {
+            if (pointUp) { // Left
+                ctx.moveTo(x - size, y);
+                ctx.lineTo(x + size, y - size);
+                ctx.lineTo(x + size, y + size);
+            } else { // Right
+                ctx.moveTo(x + size, y);
+                ctx.lineTo(x - size, y - size);
+                ctx.lineTo(x - size, y + size);
+            }
+        } else {
+            if (pointUp) {
+                ctx.moveTo(x, y - size);
+                ctx.lineTo(x - size, y + size);
+                ctx.lineTo(x + size, y + size);
+            } else {
+                ctx.moveTo(x, y + size);
+                ctx.lineTo(x - size, y - size);
+                ctx.lineTo(x + size, y - size);
+            }
+        }
+        ctx.closePath();
+        ctx.fill();
+    }
+    
     drawObstacles() {
         if (!this.currentLevel.obstacles) return;
         
@@ -416,6 +681,47 @@ class Game {
             ctx.beginPath();
             ctx.arc(x, y, radius * 0.6, 0, Math.PI * 2);
             ctx.fill();
+        }
+    }
+    
+    drawMovingBoxes() {
+        if (!this.movingBoxes || this.movingBoxes.length === 0) return;
+        
+        const ctx = this.ctx;
+        const time = Date.now() / 1000;
+        
+        for (const box of this.movingBoxes) {
+            const halfSize = box.size / 2;
+            
+            // 그림자
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(box.x - halfSize + 3, box.y - halfSize + 3, box.size, box.size);
+            
+            // 메인 박스 - 초록색
+            const gradient = ctx.createLinearGradient(
+                box.x - halfSize, box.y - halfSize,
+                box.x + halfSize, box.y + halfSize
+            );
+            gradient.addColorStop(0, '#2ecc71');
+            gradient.addColorStop(1, '#27ae60');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(box.x - halfSize, box.y - halfSize, box.size, box.size);
+            
+            // 테두리
+            ctx.strokeStyle = '#1e8449';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(box.x - halfSize, box.y - halfSize, box.size, box.size);
+            
+            // 무늬 (목재 상자 느낌)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(box.x - halfSize, box.y);
+            ctx.lineTo(box.x + halfSize, box.y);
+            ctx.moveTo(box.x, box.y - halfSize);
+            ctx.lineTo(box.x, box.y + halfSize);
+            ctx.stroke();
         }
     }
     
