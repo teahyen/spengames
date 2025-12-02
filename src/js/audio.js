@@ -4,7 +4,10 @@ class AudioManager {
         this.audioContext = null;
         this.enabled = true;
         this.volume = 0.5;
+        this.bgmVolume = 0.3;
         this.sounds = {};
+        this.bgmOscillators = [];
+        this.isBgmPlaying = false;
         
         // Initialize Web Audio API
         this.initAudioContext();
@@ -188,6 +191,87 @@ class AudioManager {
         if (this.audioContext && this.audioContext.state === 'suspended') {
             this.audioContext.resume();
         }
+    }
+    
+    // Start background music (looping melody)
+    startBGM() {
+        if (!this.enabled || !this.audioContext || this.isBgmPlaying) return;
+        
+        this.isBgmPlaying = true;
+        this.playBGMLoop();
+    }
+    
+    // Stop background music
+    stopBGM() {
+        this.isBgmPlaying = false;
+        this.bgmOscillators.forEach(osc => {
+            try {
+                osc.stop();
+            } catch (e) {
+                // Ignore if already stopped
+            }
+        });
+        this.bgmOscillators = [];
+    }
+    
+    // Play looping background music melody
+    playBGMLoop() {
+        if (!this.isBgmPlaying || !this.audioContext) return;
+        
+        // Simple upbeat melody (C Major scale pattern)
+        const melody = [
+            {freq: 523.25, duration: 0.3}, // C
+            {freq: 587.33, duration: 0.3}, // D
+            {freq: 659.25, duration: 0.3}, // E
+            {freq: 523.25, duration: 0.3}, // C
+            {freq: 659.25, duration: 0.3}, // E
+            {freq: 587.33, duration: 0.3}, // D
+            {freq: 523.25, duration: 0.6}, // C
+            {freq: 587.33, duration: 0.3}, // D
+            {freq: 659.25, duration: 0.3}, // E
+            {freq: 698.46, duration: 0.3}, // F
+            {freq: 783.99, duration: 0.3}, // G
+            {freq: 698.46, duration: 0.3}, // F
+            {freq: 659.25, duration: 0.6}, // E
+        ];
+        
+        let totalDuration = 0;
+        melody.forEach(note => {
+            totalDuration += note.duration;
+        });
+        
+        let currentTime = 0;
+        melody.forEach(note => {
+            setTimeout(() => {
+                if (!this.isBgmPlaying) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.value = note.freq;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(this.bgmVolume, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + note.duration);
+                
+                oscillator.start();
+                oscillator.stop(this.audioContext.currentTime + note.duration);
+                
+                this.bgmOscillators.push(oscillator);
+            }, currentTime * 1000);
+            
+            currentTime += note.duration;
+        });
+        
+        // Loop the melody
+        setTimeout(() => {
+            if (this.isBgmPlaying) {
+                this.playBGMLoop();
+            }
+        }, totalDuration * 1000);
     }
 }
 

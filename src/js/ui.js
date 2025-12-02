@@ -21,7 +21,16 @@ class UIController {
                     const icon = document.getElementById('soundIcon');
                     icon.textContent = enabled ? '🔊' : '🔇';
                     soundToggle.classList.toggle('muted', !enabled);
-                    if (enabled) window.audioManager.playClick();
+                    
+                    // Toggle BGM based on sound state
+                    if (enabled) {
+                        window.audioManager.playClick();
+                        if (this.currentScreen === 'gameScreen') {
+                            window.audioManager.startBGM();
+                        }
+                    } else {
+                        window.audioManager.stopBGM();
+                    }
                 }
             });
         }
@@ -140,6 +149,15 @@ class UIController {
         if (screen) {
             screen.classList.add('active');
             this.currentScreen = screenId;
+        }
+        
+        // Control BGM based on screen
+        if (window.audioManager) {
+            if (screenId === 'gameScreen') {
+                window.audioManager.startBGM();
+            } else {
+                window.audioManager.stopBGM();
+            }
         }
         
         // Update level grid when showing main menu

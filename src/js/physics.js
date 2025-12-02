@@ -9,6 +9,7 @@ class PhysicsEngine {
     // Apply gravity to player
     applyGravity(player, rotation) {
         // Determine gravity direction based on maze rotation
+        // 회전이 변할 때 속도를 부드럽게 조정
         const rotationRad = (rotation * Math.PI) / 180;
         const gravityX = Math.sin(rotationRad) * this.gravity;
         const gravityY = Math.cos(rotationRad) * this.gravity;
@@ -37,7 +38,7 @@ class PhysicsEngine {
         player.y += player.velocityY;
     }
 
-    // Check collision with walls
+    // Check collision with walls (improved for rotation)
     checkWallCollision(player, tileSize, level) {
         const playerTileX = Math.floor(player.x / tileSize);
         const playerTileY = Math.floor(player.y / tileSize);
@@ -50,16 +51,16 @@ class PhysicsEngine {
         const playerRadius = player.radius;
         const tileX = playerTileX * tileSize;
         const tileY = playerTileY * tileSize;
-        const wallThickness = 4; // 벽 두께 고려
+        const wallThickness = 6; // 벽 두께 증가 (4 → 6)
 
         // Check each wall of the tile with improved collision
         // North wall
         if (!tile.paths.includes('N')) {
             if (player.y - playerRadius < tileY + wallThickness) {
                 player.y = tileY + wallThickness + playerRadius;
-                player.velocityY = Math.max(0, player.velocityY); // 아래로만 튕김
+                player.velocityY = Math.abs(player.velocityY) * 0.3; // 반발력 감소
                 // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityY) > 1) {
+                if (window.audioManager && Math.abs(player.velocityY) > 0.5) {
                     window.audioManager.playCollision();
                 }
             }
@@ -69,9 +70,9 @@ class PhysicsEngine {
         if (!tile.paths.includes('S')) {
             if (player.y + playerRadius > tileY + tileSize - wallThickness) {
                 player.y = tileY + tileSize - wallThickness - playerRadius;
-                player.velocityY = Math.min(0, player.velocityY); // 위로만 튕김
+                player.velocityY = -Math.abs(player.velocityY) * 0.3; // 반발력 감소
                 // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityY) > 1) {
+                if (window.audioManager && Math.abs(player.velocityY) > 0.5) {
                     window.audioManager.playCollision();
                 }
             }
@@ -81,9 +82,9 @@ class PhysicsEngine {
         if (!tile.paths.includes('W')) {
             if (player.x - playerRadius < tileX + wallThickness) {
                 player.x = tileX + wallThickness + playerRadius;
-                player.velocityX = Math.max(0, player.velocityX); // 오른쪽으로만 튕김
+                player.velocityX = Math.abs(player.velocityX) * 0.3; // 반발력 감소
                 // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityX) > 1) {
+                if (window.audioManager && Math.abs(player.velocityX) > 0.5) {
                     window.audioManager.playCollision();
                 }
             }
@@ -93,9 +94,9 @@ class PhysicsEngine {
         if (!tile.paths.includes('E')) {
             if (player.x + playerRadius > tileX + tileSize - wallThickness) {
                 player.x = tileX + tileSize - wallThickness - playerRadius;
-                player.velocityX = Math.min(0, player.velocityX); // 왼쪽으로만 튕김
+                player.velocityX = -Math.abs(player.velocityX) * 0.3; // 반발력 감소
                 // Play collision sound
-                if (window.audioManager && Math.abs(player.velocityX) > 1) {
+                if (window.audioManager && Math.abs(player.velocityX) > 0.5) {
                     window.audioManager.playCollision();
                 }
             }

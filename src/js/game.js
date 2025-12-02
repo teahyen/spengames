@@ -133,11 +133,20 @@ class Game {
             return;
         }
         
-        // Smooth rotation
+        // Smooth rotation with isRotating flag
+        const wasRotating = this.isRotating;
         if (Math.abs(this.rotation - this.targetRotation) > 0.5) {
-            this.rotation += (this.targetRotation - this.rotation) * 0.1;
+            this.isRotating = true;
+            this.rotation += (this.targetRotation - this.rotation) * 0.15; // 0.1 → 0.15로 증가
+            
+            // 회전 중에는 속도를 약간 감소시켜 벽 통과 방지
+            if (this.isRotating) {
+                this.player.velocityX *= 0.95;
+                this.player.velocityY *= 0.95;
+            }
         } else {
             this.rotation = this.targetRotation;
+            this.isRotating = false;
         }
         
         // Update physics
