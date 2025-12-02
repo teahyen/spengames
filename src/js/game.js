@@ -26,7 +26,15 @@ class Game {
             radius: 0
         };
         
-        // Drag and gyroscope removed - button controls only
+        // Drag control state
+        this.isDragging = false;
+        this.dragStartX = 0;
+        this.dragThreshold = 50; // 드래그 임계값 (픽셀)
+        
+        // Gyroscope state
+        this.gyroEnabled = false;
+        this.lastGamma = 0; // 좌우 기울기
+        this.gyroThreshold = 15; // 자이로 임계값 (도)
         
         // Animation
         this.animationId = null;
@@ -61,8 +69,105 @@ class Game {
             }
         });
         
-        // No drag controls - removed
-        // No gyroscope controls - removed
+        // Drag controls (Touch & Mouse)
+        const handleDragStart = (x) => {
+            this.isDragging = true;
+            this.dragStartX = x;
+        };
+        
+        const handleDragMove = (x) => {
+            if (!this.isDragging) return;
+            
+            const dragDistance = x - this.dragStartX;
+            
+            // 왼쪽으로 드래그 (임계값 초과 시 왼쪽 회전)
+            if (dragDistance < -this.dragThreshold) {
+                this.rotateLeft();
+                this.isDragging = false; // 한 번만 회전
+            }
+            // 오른쪽으로 드래그 (임계값 초과 시 오른쪽 회전)
+            else if (dragDistance > this.dragThreshold) {
+                this.rotateRight();
+                this.isDragging = false; // 한 번만 회전
+            }
+        };
+        
+        const handleDragEnd = () => {
+            this.isDragging = false;
+        };
+        
+        // Mouse events
+        this.canvas.addEventListener('mousedown', (e) => {
+            handleDragStart(e.clientX);
+        });
+        
+        this.canvas.addEventListener('mousemove', (e) => {
+            handleDragMove(e.clientX);
+        });
+        
+        this.canvas.addEventListener('mouseup', handleDragEnd);
+        this.canvas.addEventListener('mouseleave', handleDragEnd);
+        
+        // Touch events
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleDragStart(e.touches[0].clientX);
+        });
+        
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handleDragMove(e.touches[0].clientX);
+        });
+        
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleDragEnd();
+        });
+        
+        // Gyroscope controls
+        if (window.DeviceOrientationEvent) {
+            // Request permission for iOS 13+
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS에서는 사용자 상호작용 필요
+                document.getElementById('enableGyroButton')?.addEventListener('click', () => {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(response => {
+                            if (response === 'granted') {
+                                this.enableGyroscope();
+                            }
+                        })
+                        .catch(console.error);
+                });
+            } else {
+                // Android 및 기타 브라우저
+                this.enableGyroscope();
+            }
+        }
+    }
+    
+    enableGyroscope() {
+        this.gyroEnabled = true;
+        
+        window.addEventListener('deviceorientation', (e) => {
+            if (!this.gyroEnabled || this.isPaused || this.isGameWon) return;
+            
+            const gamma = e.gamma; // 좌우 기울기 (-90 ~ 90)
+            
+            if (gamma === null) return;
+            
+            // 왼쪽으로 기울임 (gamma < -threshold)
+            if (gamma < -this.gyroThreshold && this.lastGamma >= -this.gyroThreshold) {
+                this.rotateLeft();
+            }
+            // 오른쪽으로 기울임 (gamma > threshold)
+            else if (gamma > this.gyroThreshold && this.lastGamma <= this.gyroThreshold) {
+                this.rotateRight();
+            }
+            
+            this.lastGamma = gamma;
+        });
+        
+        console.log('Gyroscope enabled');
     }
     
 
@@ -201,6 +306,29 @@ class Game {
             const oldVelY = this.player.velocityY;
             this.player.velocityX = oldVelX * cos - oldVelY * sin;
             this.player.velocityY = oldVelX * sin + oldVelY * cos;
+            
+            // Moving Box도 맵과 함께 회전 (플레이어와 동일한 로직)
+            if (this.movingBoxes && this.movingBoxes.length > 0) {
+                for (const box of this.movingBoxes) {
+                    // 박스의 현재 위치를 중심 기준 상대 좌표로 변환
+                    const boxRelX = box.x - centerX;
+                    const boxRelY = box.y - centerY;
+                    
+                    // 회전 변화량만큼 박스 위치 회전
+                    const newBoxRelX = boxRelX * cos - boxRelY * sin;
+                    const newBoxRelY = boxRelX * sin + boxRelY * cos;
+                    
+                    // 절대 좌표로 다시 변환
+                    box.x = centerX + newBoxRelX;
+                    box.y = centerY + newBoxRelY;
+                    
+                    // 박스 속도도 회전 (방향 유지)
+                    const oldBoxVelX = box.velocityX;
+                    const oldBoxVelY = box.velocityY;
+                    box.velocityX = oldBoxVelX * cos - oldBoxVelY * sin;
+                    box.velocityY = oldBoxVelX * sin + oldBoxVelY * cos;
+                }
+            }
         } else {
             this.rotation = this.targetRotation;
             this.isRotating = false;

@@ -26,7 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: false });
     
-    // Gyroscope feature removed - button controls only
+    // Show gyroscope button on iOS devices
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const gyroButton = document.getElementById('enableGyroButton');
+        if (gyroButton) {
+            gyroButton.style.display = 'inline-block';
+        }
+    }
+    
+    // Control hints update (now includes drag)
+    const controlHints = document.getElementById('controlHints');
+    if (controlHints) {
+        controlHints.innerHTML = `
+            <p>회전 버튼 또는 드래그로 미로를 90도씩 회전하세요</p>
+            <p class="small">키보드 방향키(←/→), 화면 드래그도 사용 가능합니다</p>
+        `;
+    }
     
     // Service worker registration for PWA support (optional)
     if ('serviceWorker' in navigator) {
