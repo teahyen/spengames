@@ -182,12 +182,14 @@ class Game {
         this.targetRotation -= 90;
         this.moveCount++;
         this.updateMoveDisplay();
+        if (window.audioManager) window.audioManager.playRotate();
     }
     
     rotateRight() {
         this.targetRotation += 90;
         this.moveCount++;
         this.updateMoveDisplay();
+        if (window.audioManager) window.audioManager.playRotate();
     }
     
     updateMoveDisplay() {
@@ -273,6 +275,8 @@ class Game {
     }
     
     activatePowerup(powerup) {
+        if (window.audioManager) window.audioManager.playPowerup();
+        
         switch (powerup.type) {
             case 'extra_time':
                 if (this.currentLevel.timeLimit) {
@@ -302,6 +306,9 @@ class Game {
         this.isGameWon = true;
         this.isPaused = true;
         
+        // Play win sound
+        if (window.audioManager) window.audioManager.playStageClear();
+        
         // Calculate stars (based on moves and time)
         let stars = 3;
         if (this.currentLevel.moveLimit) {
@@ -321,12 +328,14 @@ class Game {
     
     handleTimeOut() {
         this.isPaused = true;
+        if (window.audioManager) window.audioManager.playGameOver();
         alert('시간 초과! 다시 시도하세요.');
         this.reset();
     }
     
     handleMoveLimit() {
         this.isPaused = true;
+        if (window.audioManager) window.audioManager.playGameOver();
         alert('이동 횟수 초과! 다시 시도하세요.');
         this.reset();
     }

@@ -8,8 +8,23 @@ class UIController {
     setupEventListeners() {
         // Main menu buttons
         document.getElementById('startButton').addEventListener('click', () => {
+            if (window.audioManager) window.audioManager.playClick();
             this.startGame(0);
         });
+        
+        // Sound toggle
+        const soundToggle = document.getElementById('soundToggle');
+        if (soundToggle) {
+            soundToggle.addEventListener('click', () => {
+                if (window.audioManager) {
+                    const enabled = window.audioManager.toggle();
+                    const icon = document.getElementById('soundIcon');
+                    icon.textContent = enabled ? '🔊' : '🔇';
+                    soundToggle.classList.toggle('muted', !enabled);
+                    if (enabled) window.audioManager.playClick();
+                }
+            });
+        }
         
         // Game control buttons
         document.getElementById('resetButton').addEventListener('click', () => {
@@ -39,6 +54,7 @@ class UIController {
         
         // Stage clear buttons
         document.getElementById('nextLevelButton').addEventListener('click', () => {
+            if (window.audioManager) window.audioManager.playClick();
             if (window.game) {
                 const nextLevel = window.game.currentLevelIndex + 1;
                 if (nextLevel < LEVELS.length) {
@@ -50,6 +66,7 @@ class UIController {
         });
         
         document.getElementById('returnMenuButton').addEventListener('click', () => {
+            if (window.audioManager) window.audioManager.playClick();
             this.showScreen('mainMenu');
         });
         
@@ -103,6 +120,7 @@ class UIController {
                 button.textContent = '🔒';
             } else {
                 button.addEventListener('click', () => {
+                    if (window.audioManager) window.audioManager.playClick();
                     this.startGame(i);
                 });
             }

@@ -97,6 +97,11 @@ class PhysicsEngine {
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance < player.radius + obstacleRadius) {
+                // Play collision sound
+                if (window.audioManager && Math.abs(player.velocityX) + Math.abs(player.velocityY) > 2) {
+                    window.audioManager.playCollision();
+                }
+                
                 // Push player away from obstacle
                 const angle = Math.atan2(dy, dx);
                 const overlap = player.radius + obstacleRadius - distance;

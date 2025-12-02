@@ -16,6 +16,11 @@
             <h1 class="game-title">섞고 섞고<br>돌리고 섞고</h1>
             <p class="game-subtitle">Mix, Spin, Mix</p>
             <button id="startButton" class="btn-primary">탭하여 시작</button>
+            <div class="sound-control">
+                <button id="soundToggle" class="btn-sound" title="사운드 켜기/끄기">
+                    <span id="soundIcon">🔊</span>
+                </button>
+            </div>
             <div class="level-select">
                 <h3>레벨 선택</h3>
                 <div id="levelGrid" class="level-grid"></div>
@@ -85,6 +90,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="src/js/audio.js"></script>
     <script src="src/js/levels.js"></script>
     <script src="src/js/physics.js"></script>
     <script src="src/js/game.js"></script>
