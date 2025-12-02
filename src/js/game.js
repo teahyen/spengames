@@ -502,24 +502,46 @@ class Game {
             const wallThickness = 4; // 8 → 4로 줄임 (히트박스 50% 감소)
             
             // Check which side has the death wall
-            if (wall.side === 'N' && playerMapY - this.player.radius < tileY + wallThickness) {
-                if (playerMapX >= tileX && playerMapX <= tileX + this.tileSize) {
-                    return true;
+            // North wall (top of tile)
+            if (wall.side === 'N') {
+                // 공이 벽의 Y 범위 안에 있는지 확인
+                if (playerMapY - this.player.radius < tileY + wallThickness && 
+                    playerMapY + this.player.radius > tileY) {
+                    // 공이 벽의 X 범위 안에 있는지 확인 (타일 가장자리만)
+                    if (playerMapX + this.player.radius > tileX && 
+                        playerMapX - this.player.radius < tileX + this.tileSize) {
+                        return true;
+                    }
                 }
             }
-            if (wall.side === 'S' && playerMapY + this.player.radius > tileY + this.tileSize - wallThickness) {
-                if (playerMapX >= tileX && playerMapX <= tileX + this.tileSize) {
-                    return true;
+            // South wall (bottom of tile)
+            if (wall.side === 'S') {
+                if (playerMapY + this.player.radius > tileY + this.tileSize - wallThickness && 
+                    playerMapY - this.player.radius < tileY + this.tileSize) {
+                    if (playerMapX + this.player.radius > tileX && 
+                        playerMapX - this.player.radius < tileX + this.tileSize) {
+                        return true;
+                    }
                 }
             }
-            if (wall.side === 'W' && playerMapX - this.player.radius < tileX + wallThickness) {
-                if (playerMapY >= tileY && playerMapY <= tileY + this.tileSize) {
-                    return true;
+            // West wall (left of tile)
+            if (wall.side === 'W') {
+                if (playerMapX - this.player.radius < tileX + wallThickness && 
+                    playerMapX + this.player.radius > tileX) {
+                    if (playerMapY + this.player.radius > tileY && 
+                        playerMapY - this.player.radius < tileY + this.tileSize) {
+                        return true;
+                    }
                 }
             }
-            if (wall.side === 'E' && playerMapX + this.player.radius > tileX + this.tileSize - wallThickness) {
-                if (playerMapY >= tileY && playerMapY <= tileY + this.tileSize) {
-                    return true;
+            // East wall (right of tile)
+            if (wall.side === 'E') {
+                if (playerMapX + this.player.radius > tileX + this.tileSize - wallThickness && 
+                    playerMapX - this.player.radius < tileX + this.tileSize) {
+                    if (playerMapY + this.player.radius > tileY && 
+                        playerMapY - this.player.radius < tileY + this.tileSize) {
+                        return true;
+                    }
                 }
             }
         }

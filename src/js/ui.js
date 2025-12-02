@@ -196,9 +196,10 @@ class UIController {
         document.getElementById('clearLevel').textContent = level;
         document.getElementById('clearMoves').textContent = moves;
         
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        document.getElementById('clearTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        // 시간 표시 제거 (사용자 요청)
+        // const minutes = Math.floor(time / 60);
+        // const seconds = Math.floor(time % 60);
+        // document.getElementById('clearTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         
         // Animate stars
         const starElements = document.querySelectorAll('#starsContainer .star');
