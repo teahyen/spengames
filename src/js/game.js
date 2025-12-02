@@ -511,38 +511,18 @@ class Game {
         // 사망 횟수 증가
         this.deathCount++;
         
+        // 게임 일시정지
+        this.isPaused = true;
+        
         // 사망 사운드 재생
         if (window.audioManager) {
             window.audioManager.playGameOver();
         }
         
-        // 공을 시작 위치로 리스폰
-        this.player.x = this.startPosition.x;
-        this.player.y = this.startPosition.y;
-        this.player.velocityX = 0;
-        this.player.velocityY = 0;
-        
-        // 회전도 초기화
-        this.rotation = 0;
-        this.targetRotation = 0;
-        this.isRotating = false;
-        
-        // 무빙 박스도 초기화
-        if (this.currentLevel.movingBoxes) {
-            this.movingBoxes = [];
-            this.currentLevel.movingBoxes.forEach(box => {
-                this.movingBoxes.push({
-                    x: box.x * this.tileSize + this.tileSize / 2,
-                    y: box.y * this.tileSize + this.tileSize / 2,
-                    velocityX: 0,
-                    velocityY: 0,
-                    size: this.tileSize * 0.4,
-                    mass: 2
-                });
-            });
+        // 게임 오버 UI 표시
+        if (window.uiController) {
+            window.uiController.showGameOver(this.currentLevelIndex + 1, this.deathCount);
         }
-        
-        // BGM은 계속 재생 (중단하지 않음)
     }
     
     checkObstacleHit() {

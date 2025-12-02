@@ -86,11 +86,26 @@
             <h2 class="clear-title">🎉 축하합니다! 🎉</h2>
             <div class="clear-stats">
                 <p class="big-text">모든 레벨을 클리어했습니다!</p>
-                <p>총 레벨: 60</p>
-                <p class="small-text">새로운 기믹: 데스 월 ⚠️, 무빙 박스 📦, 텔레포트 🌀</p>
+                <p>총 레벨: 60개 (3개 스테이지)</p>
+                <p class="small-text">스테이지 1: 초보 (20레벨) | 스테이지 2: 중급 (20레벨) | 스테이지 3: 고급 (20레벨)</p>
             </div>
             <button id="playAgainButton" class="btn-primary">처음부터 다시</button>
             <button id="finalMenuButton" class="btn-secondary">메뉴로</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="screen">
+        <div class="clear-container">
+            <h2 class="clear-title" style="color: #e74c3c;">💀 게임 오버 💀</h2>
+            <div class="clear-stats">
+                <p class="big-text">빨간 벽에 닿았습니다!</p>
+                <p>레벨 <span id="gameOverLevel">1</span></p>
+                <p>사망 횟수: <span id="gameOverDeaths">0</span></p>
+                <p class="small-text">빨간 벽을 피해서 골까지 가세요!</p>
+            </div>
+            <button id="retryButton" class="btn-primary">다시 시도</button>
+            <button id="gameOverMenuButton" class="btn-secondary">메뉴로</button>
         </div>
     </div>
 

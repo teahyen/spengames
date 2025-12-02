@@ -90,6 +90,45 @@ class UIController {
             this.showScreen('mainMenu');
         });
         
+        // Game Over screen buttons
+        document.getElementById('retryButton').addEventListener('click', () => {
+            if (window.game) {
+                // 리스폰 로직
+                window.game.player.x = window.game.startPosition.x;
+                window.game.player.y = window.game.startPosition.y;
+                window.game.player.velocityX = 0;
+                window.game.player.velocityY = 0;
+                
+                // 회전 초기화
+                window.game.rotation = 0;
+                window.game.targetRotation = 0;
+                window.game.isRotating = false;
+                
+                // 무빙 박스 초기화
+                if (window.game.currentLevel.movingBoxes) {
+                    window.game.movingBoxes = [];
+                    window.game.currentLevel.movingBoxes.forEach(box => {
+                        window.game.movingBoxes.push({
+                            x: box.x * window.game.tileSize + window.game.tileSize / 2,
+                            y: box.y * window.game.tileSize + window.game.tileSize / 2,
+                            velocityX: 0,
+                            velocityY: 0,
+                            size: window.game.tileSize * 0.4,
+                            mass: 2
+                        });
+                    });
+                }
+                
+                // 게임 재개
+                window.game.isPaused = false;
+                this.showScreen('gameScreen');
+            }
+        });
+        
+        document.getElementById('gameOverMenuButton').addEventListener('click', () => {
+            this.showScreen('mainMenu');
+        });
+        
         // Generate level selection grid
         this.generateLevelGrid();
         
@@ -222,6 +261,14 @@ class UIController {
     
     showAllClear() {
         this.showScreen('allClearScreen');
+    }
+    
+    showGameOver(level, deaths) {
+        this.showScreen('gameOverScreen');
+        
+        // Update stats
+        document.getElementById('gameOverLevel').textContent = level;
+        document.getElementById('gameOverDeaths').textContent = deaths;
     }
 }
 

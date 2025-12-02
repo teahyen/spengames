@@ -247,65 +247,70 @@ def generate_all_levels():
     
     print("🎮 Generating 60 balanced levels with A* validation...\n")
     
-    # Levels 1-5: Tutorial (3x3, simple)
-    print("📝 Levels 1-5: Tutorial (3x3, very easy)")
+    # ========== STAGE 1: Beginner (Levels 1-20) ==========
+    print("\n" + "="*60)
+    print("🎮 STAGE 1: BEGINNER (Levels 1-20)")
+    print("="*60)
+    
+    # Stage 1-1: Tutorial (3x3)
+    print("\n📝 Stage 1-1 to 1-5: Tutorial (3x3)")
     for i in range(1, 6):
         levels.append(create_level(i, 3, 0.1))
     
-    # Levels 6-10: Easy (4x4, simple)
-    print("\n🟢 Levels 6-10: Easy (4x4)")
+    # Stage 1-6: Easy (4x4, obstacles)
+    print("\n🟢 Stage 1-6 to 1-10: Easy (4x4, obstacles)")
     for i in range(6, 11):
         levels.append(create_level(i, 4, 0.2, has_obstacles=1))
     
-    # Levels 11-15: Introducing death walls (4x4)
-    print("\n🟡 Levels 11-15: Death Walls (4x4)")
+    # Stage 1-11: Death walls intro (4x4)
+    print("\n🟡 Stage 1-11 to 1-15: Death Walls (4x4)")
     for i in range(11, 16):
         levels.append(create_level(i, 4, 0.25, has_obstacles=1, has_death_walls=1))
     
-    # Levels 16-20: Introducing moving boxes (4x4)
-    print("\n🟠 Levels 16-20: Moving Boxes (4x4)")
+    # Stage 1-16: Moving boxes intro (4x4)
+    print("\n🟠 Stage 1-16 to 1-20: Moving Boxes (4x4)")
     for i in range(16, 21):
         levels.append(create_level(i, 4, 0.3, has_obstacles=1, has_moving_boxes=1))
     
-    # Levels 21-25: Medium (5x5)
-    print("\n🟣 Levels 21-25: Medium (5x5)")
-    for i in range(21, 26):
+    # ========== STAGE 2: Intermediate (Levels 21-40) ==========
+    print("\n" + "="*60)
+    print("🎮 STAGE 2: INTERMEDIATE (Levels 21-40)")
+    print("="*60)
+    
+    # Stage 2-1: Medium (5x5)
+    print("\n🟣 Stage 2-1 to 2-7: Medium (5x5)")
+    for i in range(21, 28):
         levels.append(create_level(i, 5, 0.3, has_obstacles=2, has_moving_boxes=1))
     
-    # Levels 26-30: Medium+ (5x5)
-    print("\n🔵 Levels 26-30: Medium+ (5x5)")
-    for i in range(26, 31):
+    # Stage 2-8: Medium+ (5x5, death walls)
+    print("\n🔵 Stage 2-8 to 2-13: Medium+ (5x5, death walls)")
+    for i in range(28, 34):
         levels.append(create_level(i, 5, 0.35, has_obstacles=2, has_death_walls=1, has_moving_boxes=1))
     
-    # Levels 31-35: Advanced (5x5)
-    print("\n🔴 Levels 31-35: Advanced (5x5)")
-    for i in range(31, 36):
+    # Stage 2-14: Advanced (5x5, powerups)
+    print("\n🔴 Stage 2-14 to 2-20: Advanced (5x5, powerups)")
+    for i in range(34, 41):
         levels.append(create_level(i, 5, 0.4, has_obstacles=3, has_death_walls=2, has_moving_boxes=1, has_powerups=True))
     
-    # Levels 36-40: Hard (6x6)
-    print("\n⚫ Levels 36-40: Hard (6x6)")
-    for i in range(36, 41):
+    # ========== STAGE 3: Expert (Levels 41-60) ==========
+    print("\n" + "="*60)
+    print("🎮 STAGE 3: EXPERT (Levels 41-60)")
+    print("="*60)
+    
+    # Stage 3-1: Hard (6x6)
+    print("\n⚫ Stage 3-1 to 3-7: Hard (6x6)")
+    for i in range(41, 48):
         levels.append(create_level(i, 6, 0.4, has_obstacles=3, has_death_walls=2, has_moving_boxes=2))
     
-    # Levels 41-45: Hard+ (6x6)
-    print("\n⚫ Levels 41-45: Hard+ (6x6)")
-    for i in range(41, 46):
-        levels.append(create_level(i, 6, 0.45, has_obstacles=4, has_death_walls=2, has_moving_boxes=2, has_powerups=True))
-    
-    # Levels 46-50: Expert (6x6)
-    print("\n⭐ Levels 46-50: Expert (6x6)")
-    for i in range(46, 51):
+    # Stage 3-8: Expert (6x6, powerups)
+    print("\n⭐ Stage 3-8 to 3-13: Expert (6x6, powerups)")
+    for i in range(48, 54):
         levels.append(create_level(i, 6, 0.5, has_obstacles=4, has_death_walls=3, has_moving_boxes=3, has_powerups=True))
     
-    # Levels 51-55: Master (7x7)
-    print("\n🌟 Levels 51-55: Master (7x7)")
-    for i in range(51, 56):
-        levels.append(create_level(i, 7, 0.5, has_obstacles=5, has_death_walls=3, has_moving_boxes=3, has_powerups=True))
-    
-    # Levels 56-60: Ultimate (7x7)
-    print("\n💎 Levels 56-60: Ultimate Challenge (7x7)")
-    for i in range(56, 61):
-        levels.append(create_level(i, 7, 0.55, has_obstacles=6, has_death_walls=4, has_moving_boxes=4, has_powerups=True))
+    # Stage 3-14: Master (7x7)
+    print("\n🌟 Stage 3-14 to 3-20: Master (7x7, ultimate)")
+    for i in range(54, 61):
+        levels.append(create_level(i, 7, 0.55, has_obstacles=5, has_death_walls=4, has_moving_boxes=4, has_powerups=True))
     
     return levels
 
